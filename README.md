@@ -376,9 +376,9 @@ This project is for academic purposes (BSc Capstone).
 ## 📧 Contact
 
 For questions or feedback:
-- Email: jeremiah.agbaje@alustudent.com
-- GitHub: [@yourusername](https://github.com/yourusername)
+- Email: j.agbaje@alustudent.com
+- GitHub: [@j-agbaje](https://github.com/yourusername)
 
 ---
 
-**Last Updated:** February 6, 2026
+**Last Updated:** February 27, 2026
