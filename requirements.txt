@@ -1,0 +1,43 @@
+# Core ML/Data Science
+pandas==2.1.4
+numpy==1.26.3
+matplotlib==3.8.2
+seaborn==0.13.1
+scikit-learn==1.4.0
+
+# Deep Learning
+tensorflow==2.16.1
+keras==3.0.0
+
+# Backend Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Database
+sqlalchemy==2.0.25
+pymysql==1.1.0
+alembic==1.13.1
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+
+# OpenAI API
+openai==1.10.0
+
+# Utilities
+requests==2.31.0
+python-dateutil==2.8.2
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+httpx==0.26.0
+
+# Optional: Jupyter for local notebook development
+jupyter==1.0.0
+ipykernel==6.28.0
