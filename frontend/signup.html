@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>ProActive | Sign Up</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#136dec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col">
+    <div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            <!-- Navigation Header -->
+            <header
+                class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#dbe0e6] dark:border-gray-800 px-6 md:px-20 py-4 bg-white dark:bg-background-dark">
+                <div class="flex items-center gap-4 text-[#111418] dark:text-white">
+                    <div class="size-6 text-primary">
+                        <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z"
+                                fill="currentColor" fill-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-bold leading-tight tracking-[-0.015em] font-display">ProActive</h2>
+                </div>
+                <div class="flex items-center gap-6">
+                    <a class="hidden md:block text-[#111418] dark:text-gray-300 text-sm font-medium leading-normal hover:text-primary transition-colors"
+                        href="#">Product</a>
+                    <a class="hidden md:block text-[#111418] dark:text-gray-300 text-sm font-medium leading-normal hover:text-primary transition-colors"
+                        href="#">Features</a>
+                    <button
+                        class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-all">
+                        <span class="truncate">Log In</span>
+                    </button>
+                </div>
+            </header>
+            <!-- Main Content Area -->
+            <main class="flex-1 flex items-center justify-center p-6 md:p-12">
+                <div
+                    class="w-full max-w-[480px] bg-white dark:bg-[#1a222c] p-8 md:p-10 rounded-xl shadow-sm border border-[#dbe0e6] dark:border-gray-800">
+                    <div class="text-center mb-8">
+                        <h1 class="text-[#111418] dark:text-white text-3xl font-bold leading-tight tracking-tight mb-2">
+                            Join ProActive</h1>
+                        <p class="text-[#617289] dark:text-gray-400 text-base font-normal">Master your schedule with
+                            AI-driven productivity tracking.</p>
+                    </div>
+                    <form class="space-y-5">
+                        <!-- Full Name Field -->
+                        <div class="flex flex-col gap-2">
+                            <label class="text-[#111418] dark:text-gray-200 text-sm font-medium leading-normal">Full
+                                Name</label>
+                            <div class="relative">
+                                <span
+                                    class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl">person</span>
+                                <input
+                                    class="form-input flex w-full rounded-lg text-[#111418] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#dbe0e6] dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary h-12 pl-12 pr-4 placeholder:text-[#617289] dark:placeholder:text-gray-500 text-base font-normal transition-all"
+                                    placeholder="John Doe" type="text" />
+                            </div>
+                        </div>
+                        <!-- Email Field -->
+                        <div class="flex flex-col gap-2">
+                            <label class="text-[#111418] dark:text-gray-200 text-sm font-medium leading-normal">Student
+                                Email</label>
+                            <div class="relative">
+                                <span
+                                    class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl">mail</span>
+                                <input
+                                    class="form-input flex w-full rounded-lg text-[#111418] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#dbe0e6] dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary h-12 pl-12 pr-4 placeholder:text-[#617289] dark:placeholder:text-gray-500 text-base font-normal transition-all"
+                                    placeholder="name@university.edu" type="email" />
+                            </div>
+                        </div>
+                        <!-- Password Field -->
+                        <div class="flex flex-col gap-2">
+                            <label
+                                class="text-[#111418] dark:text-gray-200 text-sm font-medium leading-normal">Password</label>
+                            <div class="relative">
+                                <span
+                                    class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl">lock</span>
+                                <input
+                                    class="form-input flex w-full rounded-lg text-[#111418] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#dbe0e6] dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary h-12 pl-12 pr-12 placeholder:text-[#617289] dark:placeholder:text-gray-500 text-base font-normal transition-all"
+                                    placeholder="••••••••" type="password" />
+                                <button
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+                                    type="button">
+                                    <span class="material-symbols-outlined text-xl">visibility</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- AI Feature Hint -->
+                        <div class="flex items-center gap-2 pt-2 text-[#617289] dark:text-gray-400">
+                            <span class="material-symbols-outlined text-[18px] text-primary">auto_awesome</span>
+                            <span class="text-xs font-medium">AI-powered procrastination insights included</span>
+                        </div>
+                        <!-- Submit Button -->
+                        <button
+                            class="flex w-full cursor-pointer items-center justify-center rounded-lg h-14 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 active:scale-[0.98] transition-all shadow-md mt-4"
+                            type="submit">
+                            <span>Create Account</span>
+                        </button>
+                    </form>
+                    <!-- Bottom Navigation -->
+                    <div class="mt-8 text-center border-t border-[#f0f2f4] dark:border-gray-800 pt-6">
+                        <p class="text-[#617289] dark:text-gray-400 text-sm">
+                            Already have an account?
+                            <a class="text-primary font-bold hover:underline ml-1" href="#">Log in</a>
+                        </p>
+                    </div>
+                    <!-- Small Legal -->
+                    <p class="mt-8 text-center text-[#617289] dark:text-gray-500 text-[11px] leading-relaxed">
+                        By clicking "Create Account", you agree to ProActive's
+                        <a class="underline" href="#">Terms of Service</a> and
+                        <a class="underline" href="#">Privacy Policy</a>.
+                    </p>
+                </div>
+            </main>
+            <!-- Footer -->
+            <footer
+                class="py-6 px-10 flex flex-col items-center justify-center gap-2 text-[#617289] dark:text-gray-500">
+                <div class="flex gap-4 text-xs font-medium uppercase tracking-widest">
+                    <a class="hover:text-primary" href="#">About</a>
+                    <a class="hover:text-primary" href="#">Support</a>
+                    <a class="hover:text-primary" href="#">Contact</a>
+                </div>
+                <p class="text-[12px]">© 2024 ProActive AI Productivity. All rights reserved.</p>
+            </footer>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>ProActive Student Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#136dec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                        "risk-medium": "#f97316",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-gray-100 font-display">
+    <div class="flex h-screen flex-col overflow-hidden">
+        <!-- Top Navigation Bar -->
+        <header
+            class="flex h-16 items-center justify-between border-b border-solid border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark px-6 py-3 shrink-0 z-10">
+            <div class="flex items-center gap-3">
+                <div class="size-8 text-primary">
+                    <svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z"
+                            fill-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold leading-tight tracking-tight">ProActive</h2>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="hidden md:flex flex-col items-end">
+                    <span class="text-sm font-semibold">Alex Johnson</span>
+                    <span class="text-xs text-gray-500">Premium Student</span>
+                </div>
+                <button
+                    class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold transition hover:bg-blue-700">
+                    <span class="truncate">Logout</span>
+                </button>
+            </div>
+        </header>
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar Navigation -->
+            <aside
+                class="flex w-64 flex-col justify-between border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark p-4 shrink-0">
+                <div class="flex flex-col gap-4">
+                    <div class="flex items-center gap-3 px-3 py-4">
+                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12 border-2 border-primary/20"
+                            data-alt="Close up profile photo of a male student"
+                            style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCEZoYMT4Zjlw-kdW9uzaSNlUH0Uo_Ub3spImuDkimaCI95VF4XHA5S1-2H01YkCzjngLxgtsr0VOlKjfYw5GEu1EB7GPetUA_qiKd-ez4xZScj-G-0Yun_qCyH_eNcImqC8KMzasqy5M0dzXkjvyDLZUUGtY7w579XwFjXMKovzpEpHHvEDNpoD7xihGf6UMrh4ot6rmpSXFByU_Nd4pO1JM_0QSow68ws_0iK4MTwFIotb0UbarHD6A-hLgI1UvE1fvbZRFBiGhZt");'>
+                        </div>
+                        <div class="flex flex-col">
+                            <h1 class="text-base font-medium leading-none">My Progress</h1>
+                            <p class="text-gray-500 text-xs mt-1">Online Learner</p>
+                        </div>
+                    </div>
+                    <nav class="flex flex-col gap-2">
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary" href="#">
+                            <span class="material-symbols-outlined text-[24px]">dashboard</span>
+                            <p class="text-sm font-medium">Dashboard</p>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                            href="#">
+                            <span class="material-symbols-outlined text-[24px]">task_alt</span>
+                            <p class="text-sm font-medium">Tasks</p>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                            href="#">
+                            <span class="material-symbols-outlined text-[24px]">insights</span>
+                            <p class="text-sm font-medium">Analytics</p>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                            href="#">
+                            <span class="material-symbols-outlined text-[24px]">settings</span>
+                            <p class="text-sm font-medium">Preferences</p>
+                        </a>
+                    </nav>
+                </div>
+                <div class="flex flex-col gap-1 border-t border-gray-200 dark:border-gray-800 pt-4">
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                        href="#">
+                        <span class="material-symbols-outlined text-[24px]">account_circle</span>
+                        <p class="text-sm font-medium">Profile</p>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                        href="#">
+                        <span class="material-symbols-outlined text-[24px]">help</span>
+                        <p class="text-sm font-medium">Help Center</p>
+                    </a>
+                </div>
+            </aside>
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto p-6 lg:p-10">
+                <div class="mx-auto max-w-6xl">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold">Welcome back, Alex</h2>
+                        <p class="text-gray-500">Here's what your AI coach is seeing today.</p>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- AI Risk Assessment Card -->
+                        <div class="lg:col-span-8">
+                            <div
+                                class="flex flex-col overflow-hidden rounded-xl border border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-950/20 shadow-sm">
+                                <div class="flex flex-col md:flex-row">
+                                    <div
+                                        class="w-full md:w-1/3 bg-orange-100 dark:bg-orange-900/40 p-8 flex flex-col items-center justify-center text-center">
+                                        <span
+                                            class="text-orange-600 dark:text-orange-400 text-sm font-bold uppercase tracking-wider">AI
+                                            Confidence</span>
+                                        <div class="mt-2 text-5xl font-extrabold text-orange-700 dark:text-orange-300">
+                                            65%</div>
+                                        <div
+                                            class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-200 text-orange-800">
+                                            Medium Risk
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-1 flex-col justify-center p-6 lg:p-8">
+                                        <h3 class="text-xl font-bold text-orange-900 dark:text-orange-100">Delay
+                                            Predicted</h3>
+                                        <p class="mt-2 text-orange-800 dark:text-orange-200 leading-relaxed">
+                                            Your engagement patterns suggest a slight delay in your <b>Calculus:
+                                                Assignment 4</b>. Your current study velocity is 12% lower than your
+                                            usual Tuesday average.
+                                        </p>
+                                        <div class="mt-6 flex flex-wrap gap-3">
+                                            <button
+                                                class="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-bold shadow-md hover:bg-orange-700 transition">
+                                                Review Risk Factors
+                                            </button>
+                                            <button
+                                                class="px-4 py-2 bg-white/80 dark:bg-gray-800/80 text-orange-800 dark:text-orange-200 border border-orange-200 dark:border-orange-800 rounded-lg text-sm font-bold hover:bg-white transition">
+                                                Dismiss
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Weekly Activity Chart -->
+                            <div
+                                class="mt-6 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark p-6 shadow-sm">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div>
+                                        <h3 class="text-lg font-bold">Weekly Activity</h3>
+                                        <p class="text-sm text-gray-500">Focus intensity over the last 7 days</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-2xl font-bold text-primary">High Engagement</p>
+                                        <p class="text-xs text-green-600 font-bold">+12% vs last week</p>
+                                    </div>
+                                </div>
+                                <div class="h-48 w-full">
+                                    <svg class="w-full h-full" fill="none" preserveaspectratio="none"
+                                        viewbox="0 0 478 150" xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25V149H0V109Z"
+                                            fill="url(#activityGradient)"></path>
+                                        <path
+                                            d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25"
+                                            stroke="#136dec" stroke-linecap="round" stroke-width="3"></path>
+                                        <defs>
+                                            <lineargradient gradientunits="userSpaceOnUse" id="activityGradient"
+                                                x1="236" x2="236" y1="1" y2="149">
+                                                <stop stop-color="#136dec" stop-opacity="0.2"></stop>
+                                                <stop offset="1" stop-color="#136dec" stop-opacity="0"></stop>
+                                            </lineargradient>
+                                        </defs>
+                                    </svg>
+                                </div>
+                                <div class="flex justify-between mt-4 px-2">
+                                    <span class="text-[11px] font-bold text-gray-400">MON</span>
+                                    <span class="text-[11px] font-bold text-gray-400">TUE</span>
+                                    <span class="text-[11px] font-bold text-gray-400">WED</span>
+                                    <span class="text-[11px] font-bold text-gray-400">THU</span>
+                                    <span class="text-[11px] font-bold text-gray-400">FRI</span>
+                                    <span class="text-[11px] font-bold text-gray-400">SAT</span>
+                                    <span class="text-[11px] font-bold text-gray-400">SUN</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Sidebar Widgets -->
+                        <div class="lg:col-span-4 flex flex-col gap-6">
+                            <!-- MCII Intervention Panel -->
+                            <div
+                                class="rounded-xl border border-blue-100 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-6 shadow-sm">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <span class="material-symbols-outlined text-primary">psychology</span>
+                                    <h3 class="text-base font-bold text-blue-900 dark:text-blue-100">MCII Intervention
+                                        Tip</h3>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                                        <p class="text-xs font-bold text-primary uppercase mb-1">Implementation
+                                            Intention</p>
+                                        <p class="text-sm italic text-gray-700 dark:text-gray-300">
+                                            "If I feel like browsing social media, then I will set a 5-minute timer to
+                                            focus on one sentence."
+                                        </p>
+                                    </div>
+                                    <p class="text-xs text-blue-800 dark:text-blue-200">
+                                        Mental Contrasting helps you visualize the reward of finishing while
+                                        acknowledging the obstacles.
+                                    </p>
+                                    <button
+                                        class="w-full py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition uppercase tracking-wide">
+                                        Get New Strategy
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Deadlines & Checklist -->
+                            <div
+                                class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark p-6 shadow-sm flex-1">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-bold">Today's Tasks</h3>
+                                    <span class="text-xs font-bold bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">3
+                                        Remaining</span>
+                                </div>
+                                <ul class="space-y-4">
+                                    <li class="flex items-start gap-3 group">
+                                        <input
+                                            class="mt-1 size-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                            type="checkbox" />
+                                        <div class="flex flex-col flex-1">
+                                            <span class="text-sm font-medium">Submit Physics Lab Report</span>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span
+                                                    class="text-[10px] bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 font-bold px-1.5 py-0.5 rounded">High
+                                                    Priority</span>
+                                                <span class="text-[11px] text-gray-500 flex items-center gap-1">
+                                                    <span class="material-symbols-outlined text-xs">schedule</span> 4:00
+                                                    PM
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-3 group">
+                                        <input
+                                            class="mt-1 size-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                            type="checkbox" />
+                                        <div class="flex flex-col flex-1">
+                                            <span class="text-sm font-medium">Read Chapter 4 (Calculus)</span>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span
+                                                    class="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-bold px-1.5 py-0.5 rounded">Learning</span>
+                                                <span class="text-[11px] text-gray-500 flex items-center gap-1">
+                                                    <span class="material-symbols-outlined text-xs">schedule</span> 8:00
+                                                    PM
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-3 group">
+                                        <input
+                                            class="mt-1 size-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                            type="checkbox" />
+                                        <div class="flex flex-col flex-1">
+                                            <span class="text-sm font-medium">Discussion Board Post</span>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span class="text-[11px] text-gray-500 flex items-center gap-1">
+                                                    <span class="material-symbols-outlined text-xs">schedule</span>
+                                                    11:59 PM
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-3 group opacity-40 grayscale">
+                                        <input checked=""
+                                            class="mt-1 size-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                            type="checkbox" />
+                                        <div class="flex flex-col flex-1">
+                                            <span class="text-sm font-medium line-through">Review Psychology
+                                                Notes</span>
+                                            <span class="text-[11px] text-green-600 font-bold">Completed</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                                <button
+                                    class="mt-6 w-full py-2.5 border-2 border-dashed border-gray-200 dark:border-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-700 text-sm font-medium rounded-lg transition flex items-center justify-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px]">add</span>
+                                    Add Quick Task
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <!-- Floating Action Button -->
+        <button
+            class="fixed bottom-8 right-8 size-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-105 active:scale-95 group z-20">
+            <span class="material-symbols-outlined text-3xl">add</span>
+            <span
+                class="absolute right-full mr-4 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition whitespace-nowrap pointer-events-none">New
+                Task</span>
+        </button>
+    </div>
+</body>
+
+</html>
