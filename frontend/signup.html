@@ -47,6 +47,7 @@
         }
     </style>
 </head>
+<script src="js/auth.js"></script>
 
 <body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col">
     <div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
@@ -84,7 +85,7 @@
                         <p class="text-[#617289] dark:text-gray-400 text-base font-normal">Master your schedule with
                             AI-driven productivity tracking.</p>
                     </div>
-                    <form class="space-y-5">
+                    <form onsubmit="handleSignup(event)" class="space-y-5">
                         <!-- Full Name Field -->
                         <div class="flex flex-col gap-2">
                             <label class="text-[#111418] dark:text-gray-200 text-sm font-medium leading-normal">Full

@@ -6,8 +6,8 @@ seaborn==0.13.1
 scikit-learn==1.4.0
 
 # Deep Learning
-tensorflow==2.16.1
-keras==3.0.0
+tensorflow==2.16.2
+keras==3.0.5
 
 # Backend Framework
 fastapi==0.109.0

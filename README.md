@@ -35,59 +35,36 @@ This platform uses transfer learning to predict procrastination risk in online s
 ```
 procrastination-prediction/
 ├── README.md
+├── backend
+│   ├── database
+│   ├── main.py
+│   └── models
+│       └── saved_models
+│           ├── best_model (1).h5
+│           ├── features_with_labels.csv
+│           ├── label_encoder.pkl
+│           ├── procrastination_bilstm.h5
+│           └── scaler.pkl
+├── data
+│   ├── oulad
+│   └── processed
+├── designs
+│   └── screenshots
+│       ├── Admin dashboard.png
+│       ├── Log in page.png
+│       ├── sign up page.png
+│       └── student dashboard.png
+├── frontend
+│   ├── admin_dashboard.html
+│   ├── index.html
+│   ├── js
+│   │   └── api.js
+│   ├── signup.html
+│   └── student_dashboard.html
+├── ml_notebooks
+├── oulad_analysis_v2.ipynb
 ├── requirements.txt
-├── .gitignore
-│
-├── ml_notebooks/
-│   ├── oulad_procrastination_analysis.ipynb    # OULAD pre-training
-│   ├── local_data_finetuning.ipynb             # Transfer learning
-│   └── model_evaluation.ipynb                   # Performance metrics
-│
-├── backend/
-│   ├── main.py                                  # FastAPI application
-│   ├── models/
-│   │   ├── bilstm_model.py                     # Model architecture
-│   │   ├── prediction_service.py               # Inference logic
-│   │   └── saved_models/
-│   │       ├── procrastination_bilstm_model.h5
-│   │       ├── scaler.pkl
-│   │       └── label_encoder.pkl
-│   ├── routes/
-│   │   ├── auth.py                             # Authentication
-│   │   ├── predictions.py                      # Prediction endpoints
-│   │   ├── students.py                         # Student management
-│   │   └── interventions.py                    # MCII chatbot
-│   ├── database/
-│   │   ├── db.py                               # Database connection
-│   │   └── models.py                           # SQLAlchemy models
-│   └── config.py                               # Configuration
-│
-├── frontend/
-│   ├── index.html                              # Landing page
-│   ├── student_dashboard.html                  # Student interface
-│   ├── admin_dashboard.html                    # Admin interface
-│   ├── css/
-│   │   └── styles.css                          # Tailwind/custom styles
-│   ├── js/
-│   │   ├── api.js                              # API calls
-│   │   ├── dashboard.js                        # Dashboard logic
-│   │   └── charts.js                           # Chart rendering
-│   └── assets/
-│       └── images/
-│
-├── data/
-│   ├── oulad/                                  # OULAD dataset (download)
-│   ├── survey_responses.csv                    # Local survey data
-│   └── processed/                              # Preprocessed data
-│
-├── docs/
-│   ├── architecture_diagram.png
-│   ├── deployment_plan.md
-│   └── user_guide.md
-│
-└── tests/
-    ├── test_api.py
-    └── test_model.py
+└── tests
 ```
 
 ---

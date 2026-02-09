@@ -58,7 +58,7 @@
         }
     </style>
 </head>
-
+<script src="js/auth.js"></script>
 <body
     class="bg-background-light dark:bg-background-dark font-display text-[#111418] dark:text-white transition-colors duration-200">
     <div class="flex min-h-screen w-full">
@@ -100,7 +100,7 @@
                     <p class="text-[#617289] dark:text-gray-400">Welcome back! Please enter your details.</p>
                 </div>
                 <!-- Form -->
-                <form class="flex flex-col gap-5">
+                <form onsubmit="handleLogin(event)" class="flex flex-col gap-5">
                     <!-- Email Address -->
                     <div class="flex flex-col gap-2">
                         <label class="text-sm font-semibold text-[#111418] dark:text-gray-200">Email Address</label>

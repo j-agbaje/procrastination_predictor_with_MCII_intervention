@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html class="light" lang="en">
 
 <head>
@@ -7,13 +6,9 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>ProActive Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-        rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <script id="tailwind-config">
         tailwind.config = {
@@ -28,12 +23,6 @@
                     fontFamily: {
                         "display": ["Lexend"]
                     },
-                    borderRadius: {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
                 },
             },
         }
@@ -46,90 +35,97 @@
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
-
-        .active-nav {
-            background-color: #136dec;
-            color: white !important;
-        }
     </style>
 </head>
 
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
-    <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar -->
-        <aside
-            class="w-64 flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between">
-            <div class="p-6">
-                <div class="flex items-center gap-3 mb-10">
-                    <div class="bg-primary rounded-lg p-1.5 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-white text-2xl">monitoring</span>
-                    </div>
-                    <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">ProActive</h1>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+    <div class="flex h-screen overflow-hidden flex-col">
+        <header
+            class="flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-6 py-3 shrink-0 z-10">
+            <div class="flex items-center gap-3">
+                <div class="size-8 text-primary">
+                    <svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z"
+                            fill-rule="evenodd"></path>
+                    </svg>
                 </div>
-                <nav class="space-y-1">
-                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg active-nav transition-colors" href="#">
-                        <span class="material-symbols-outlined">dashboard</span>
-                        <span class="font-medium text-sm">Overview</span>
-                    </a>
-                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        href="#">
-                        <span class="material-symbols-outlined">group</span>
-                        <span class="font-medium text-sm">Students</span>
-                    </a>
-                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        href="#">
-                        <span class="material-symbols-outlined">notifications_active</span>
-                        <span class="font-medium text-sm">Alerts</span>
-                    </a>
-                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        href="#">
-                        <span class="material-symbols-outlined">insights</span>
-                        <span class="font-medium text-sm">Predictions</span>
-                    </a>
-                </nav>
+                <h2 class="text-xl font-bold leading-tight tracking-tight">ProActive</h2>
             </div>
-            <div class="p-6 border-t border-slate-200 dark:border-slate-800">
-                <div class="flex items-center gap-3">
-                    <div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center"
-                        data-alt="Portrait of a male administrator"
-                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8fk9M3OWsjR5o8oLXsKP1JAYWA52DY0ilXaUmavKdr9TkFI12sDCDTvWUyu2S73tienenRxq1Z2Eb7wrIfOiu-HQFn6m28tEXnuuqUyIBceBuJWr9aCuGwsFv08dzHhB8rchX5ACSfx4ykSo6NNPT3Bi5fmMlvk2xDnBWRxI-4-yB9Co-KXIFpOm2fdE56bPtBRj9EGBJZquHzaa8rNvGhCO1x5OqpasbCVOa7cX3_Iz8DXVUHZhPwDfl_1KQ1Q_AB2PCcFRzmtGK')">
-                    </div>
-                    <div class="flex flex-col">
-                        <p class="text-sm font-semibold text-slate-900 dark:text-white">Dr. Aris Thorne</p>
-                        <p class="text-xs text-slate-500">Admin Account</p>
-                    </div>
-                </div>
-            </div>
-        </aside>
-        <!-- Main Content Area -->
-        <main class="flex-1 flex flex-col overflow-hidden">
-            <!-- Header -->
-            <header
-                class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-8 flex items-center justify-between flex-shrink-0">
-                <div class="flex-1 max-w-lg">
+            <div class="flex items-center gap-6">
+                <div class="flex-1 max-w-lg hidden lg:block">
                     <div class="relative">
                         <span
                             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
                         <input
                             class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 py-2 text-sm focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-700 transition-all placeholder:text-slate-400"
-                            placeholder="Search student by name or ID..." type="text" />
+                            placeholder="Search student..." type="text" />
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <button
-                        class="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-lg transition-colors border border-slate-200 dark:border-slate-700">
-                        <span class="material-symbols-outlined text-lg">download</span>
-                        Export CSV
-                    </button>
-                    <button
-                        class="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                        <span class="material-symbols-outlined">settings</span>
-                    </button>
+                <button
+                    class="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-lg transition-colors border border-slate-200 dark:border-slate-700">
+                    <span class="material-symbols-outlined text-lg">download</span>
+                    <span class="hidden md:inline">Export CSV</span>
+                </button>
+                <div class="hidden md:flex flex-col items-end">
+                    <span class="text-sm font-semibold">Dr. Aris Thorne</span>
+                    <span class="text-xs text-slate-500">Admin Account</span>
                 </div>
-            </header>
-            <!-- Dashboard Content -->
-            <div class="flex-1 overflow-y-auto p-8 space-y-8">
-                <!-- KPI Section -->
+                <button onclick="logout()"
+                    class="flex min-w-[84px] items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold transition hover:bg-primary/90">
+                    <span class="truncate">Logout</span>
+                </button>
+            </div>
+        </header>
+        <div class="flex flex-1 overflow-hidden">
+            <aside
+                class="w-64 flex-shrink-0 bg-white dark:bg-background-dark border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between p-4">
+                <div class="flex flex-col gap-4">
+                    <div class="flex items-center gap-3 px-3 py-4">
+                        <div class="size-12 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center border-2 border-primary/20"
+                            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8fk9M3OWsjR5o8oLXsKP1JAYWA52DY0ilXaUmavKdr9TkFI12sDCDTvWUyu2S73tienenRxq1Z2Eb7wrIfOiu-HQFn6m28tEXnuuqUyIBceBuJWr9aCuGwsFv08dzHhB8rchX5ACSfx4ykSo6NNPT3Bi5fmMlvk2xDnBWRxI-4-yB9Co-KXIFpOm2fdE56bPtBRj9EGBJZquHzaa8rNvGhCO1x5OqpasbCVOa7cX3_Iz8DXVUHZhPwDfl_1KQ1Q_AB2PCcFRzmtGK');">
+                        </div>
+                        <div class="flex flex-col">
+                            <h1 class="text-base font-medium">Admin Panel</h1>
+                            <p class="text-slate-500 text-xs mt-1">System Monitor</p>
+                        </div>
+                    </div>
+                    <nav class="flex flex-col gap-2">
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-white"
+                            href="admin_dashboard.html">
+                            <span class="material-symbols-outlined">dashboard</span>
+                            <span class="font-medium text-sm">Overview</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined">group</span>
+                            <span class="font-medium text-sm">Students</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined">notifications_active</span>
+                            <span class="font-medium text-sm">Alerts</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            href="#">
+                            <span class="material-symbols-outlined">insights</span>
+                            <span class="font-medium text-sm">Predictions</span>
+                        </a>
+                    </nav>
+                </div>
+                <div class="flex flex-col gap-1 border-t border-slate-200 dark:border-slate-800 pt-4">
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                        href="#">
+                        <span class="material-symbols-outlined">account_circle</span>
+                        <p class="text-sm font-medium">Profile</p>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                        href="#">
+                        <span class="material-symbols-outlined">settings</span>
+                        <p class="text-sm font-medium">Settings</p>
+                    </a>
+                </div>
+            </aside>
+            <main class="flex-1 overflow-y-auto p-8 space-y-8">
                 <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div
                         class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -142,8 +138,7 @@
                         <div class="flex items-end gap-2">
                             <h3 class="text-3xl font-bold dark:text-white">1,250</h3>
                             <span class="text-green-500 text-sm font-semibold mb-1 flex items-center">
-                                <span class="material-symbols-outlined text-xs">arrow_upward</span>
-                                12%
+                                <span class="material-symbols-outlined text-xs">arrow_upward</span>12%
                             </span>
                         </div>
                     </div>
@@ -158,8 +153,7 @@
                         <div class="flex items-end gap-2">
                             <h3 class="text-3xl font-bold dark:text-white">18.4%</h3>
                             <span class="text-red-500 text-sm font-semibold mb-1 flex items-center">
-                                <span class="material-symbols-outlined text-xs">arrow_upward</span>
-                                3.2%
+                                <span class="material-symbols-outlined text-xs">arrow_upward</span>3.2%
                             </span>
                         </div>
                     </div>
@@ -174,8 +168,7 @@
                         <div class="flex items-end gap-2">
                             <h3 class="text-3xl font-bold dark:text-white">842</h3>
                             <span class="text-green-500 text-sm font-semibold mb-1 flex items-center">
-                                <span class="material-symbols-outlined text-xs">arrow_upward</span>
-                                5%
+                                <span class="material-symbols-outlined text-xs">arrow_upward</span>5%
                             </span>
                         </div>
                     </div>
@@ -194,7 +187,6 @@
                     </div>
                 </section>
                 <div class="flex flex-col lg:flex-row gap-8">
-                    <!-- Table Section -->
                     <div class="flex-[3] space-y-4">
                         <div class="flex items-center justify-between">
                             <h2 class="text-xl font-bold dark:text-white">Student Overview</h2>
@@ -229,13 +221,11 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                                    <!-- Row 1 -->
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
                                                 <div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center"
-                                                    data-alt="Male student avatar"
-                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC2VvApV28uuW5HelkJLFA5M3HZcVepPYoRZ5W55Ma5xGtQmIq1vNWSWE2e9EQ3j7DiaSUFAumFE92Sdg7q0jZcTxGTitdfxoiaNWZS_il1IuOLu-WzHsNqh1vgSep1mTHV2Rqr3z4PLbc_ikHH-6B07gBTRihinpvSZYKwUBub_gPQ-ZugvbBsLVj0H8yJ3RyQ4xnZ_Hnvxe_Y7FqY8gBnrFi1cTH9zM3_YnLvZ129YP_6bLVV-yhKEbE1XnMXTgtBylMssARcNa1D')">
+                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC2VvApV28uuW5HelkJLFA5M3HZcVepPYoRZ5W55Ma5xGtQmIq1vNWSWE2e9EQ3j7DiaSUFAumFE92Sdg7q0jZcTxGTitdfxoiaNWZS_il1IuOLu-WzHsNqh1vgSep1mTHV2Rqr3z4PLbc_ikHH-6B07gBTRihinpvSZYKwUBub_gPQ-ZugvbBsLVj0H8yJ3RyQ4xnZ_Hnvxe_Y7FqY8gBnrFi1cTH9zM3_YnLvZ129YP_6bLVV-yhKEbE1XnMXTgtBylMssARcNa1D');">
                                                 </div>
                                                 <span class="text-sm font-medium dark:text-white">Marcus Jenkins</span>
                                             </div>
@@ -253,13 +243,11 @@
                                                 Profile</button>
                                         </td>
                                     </tr>
-                                    <!-- Row 2 -->
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
                                                 <div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center"
-                                                    data-alt="Female student avatar"
-                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBjhCWPneq3pmTm7rYu-vCHBMtBajZMWSY74O2TTKYdqJpBxO1fXHTnYomwk2qJs0dtcO_ABBYtYoc1JdeVuNVqQUU5Y0IlsiIcc4nhHnE-sUwvWrNTKP7paIsQVvM-kj3gXwBmjoQqPXTItu1AqiJwb5ma3bfbug2wG6V2US6vxItfi_1eE2zMUXL0OBAA0ZNYb5Dr6Ied3Wpe3uX6Fqe3RxcjJghRykn-rl0wGS_U-5EAEYKB6mQxN9MRxN1cGU3LHCZdh4gQM8i2')">
+                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBjhCWPneq3pmTm7rYu-vCHBMtBajZMWSY74O2TTKYdqJpBxO1fXHTnYomwk2qJs0dtcO_ABBYtYoc1JdeVuNVqQUU5Y0IlsiIcc4nhHnE-sUwvWrNTKP7paIsQVvM-kj3gXwBmjoQqPXTItu1AqiJwb5ma3bfbug2wG6V2US6vxItfi_1eE2zMUXL0OBAA0ZNYb5Dr6Ied3Wpe3uX6Fqe3RxcjJghRykn-rl0wGS_U-5EAEYKB6mQxN9MRxN1cGU3LHCZdh4gQM8i2');">
                                                 </div>
                                                 <span class="text-sm font-medium dark:text-white">Elena Rodriguez</span>
                                             </div>
@@ -277,13 +265,11 @@
                                                 Profile</button>
                                         </td>
                                     </tr>
-                                    <!-- Row 3 -->
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
                                                 <div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center"
-                                                    data-alt="Male student avatar"
-                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBuCJCzbQYnue7hkGdSP2Q8px5LXM87q4gvewPYAtq9OFGOn-L49uQlB8I8Bu1cgtGuiDhpQ3aeAIIQ0RKaylBGZegmTfsWWqCKMib3_3G-NCagVuwR-yedkrr6ubT6F-niLAf-eLOio1BM3FrAoRlIvnQK0zrxj8l7SjZok-dgdqiktSQVXf-NpaF2h4cqB50FHC6ZPQkpDXuuXgzEVvT2MfaqF8kVsQgwpcvWhHHQDi1Z6LhFIcTexQSyhrzpjhS-VP68pXCmsYcF')">
+                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBuCJCzbQYnue7hkGdSP2Q8px5LXM87q4gvewPYAtq9OFGOn-L49uQlB8I8Bu1cgtGuiDhpQ3aeAIIQ0RKaylBGZegmTfsWWqCKMib3_3G-NCagVuwR-yedkrr6ubT6F-niLAf-eLOio1BM3FrAoRlIvnQK0zrxj8l7SjZok-dgdqiktSQVXf-NpaF2h4cqB50FHC6ZPQkpDXuuXgzEVvT2MfaqF8kVsQgwpcvWhHHQDi1Z6LhFIcTexQSyhrzpjhS-VP68pXCmsYcF');">
                                                 </div>
                                                 <span class="text-sm font-medium dark:text-white">Samual Wright</span>
                                             </div>
@@ -301,13 +287,11 @@
                                                 Profile</button>
                                         </td>
                                     </tr>
-                                    <!-- Row 4 -->
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
                                                 <div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center"
-                                                    data-alt="Female student avatar"
-                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAPcRqc5DLZuiKraHC_lERkk3igdJvGouzNYLFeH07n6x9Vw3x2Sl06M8mgV5DSIuVKiHriB5u6TGNNnl5HmiEqn-dvFSc4gHCp-jRv6D2FidH63VKqWfcToVMzk6nrKQPfIjc8kiigC_bTUTkyzxmtVr_eprptB1Ug0_686rvDM4lu8xWftIq2XFa00iDo4VKS7aS9KaWLpOZu158zgAW9ashI4BpHk7qJg_NKv1eUrwbRbdjHCqO_Ng3i9gZG7zVz9cVdqf-43oe5')">
+                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAPcRqc5DLZuiKraHC_lERkk3igdJvGouzNYLFeH07n6x9Vw3x2Sl06M8mgV5DSIuVKiHriB5u6TGNNnl5HmiEqn-dvFSc4gHCp-jRv6D2FidH63VKqWfcToVMzk6nrKQPfIjc8kiigC_bTUTkyzxmtVr_eprptB1Ug0_686rvDM4lu8xWftIq2XFa00iDo4VKS7aS9KaWLpOZu158zgAW9ashI4BpHk7qJg_NKv1eUrwbRbdjHCqO_Ng3i9gZG7zVz9cVdqf-43oe5');">
                                                 </div>
                                                 <span class="text-sm font-medium dark:text-white">Sarah Collins</span>
                                             </div>
@@ -339,7 +323,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Alerts Panel -->
                     <aside class="flex-1 space-y-4 min-w-[320px]">
                         <div class="flex items-center justify-between">
                             <h2 class="text-xl font-bold dark:text-white">Urgent Alerts</h2>
@@ -391,7 +374,6 @@
                                     Notifications</button>
                             </div>
                         </div>
-                        <!-- Mini Engagement Chart Placeholder -->
                         <div class="bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20 p-5 space-y-4">
                             <h3 class="text-sm font-bold text-primary uppercase tracking-wider">Engagement Trend</h3>
                             <div class="h-24 flex items-end justify-between gap-1">
@@ -408,9 +390,10 @@
                         </div>
                     </aside>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
+    <script src="js/dashboard.js"></script>
 </body>
 
 </html>

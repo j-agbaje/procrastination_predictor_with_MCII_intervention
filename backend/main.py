@@ -13,6 +13,7 @@ import tensorflow as tf
 import pickle
 import uuid
 import random
+import uvicorn
 
 # ==================== PATHS ====================
 
@@ -22,32 +23,52 @@ MODEL_DIR = BASE_DIR / "backend/models/saved_models"
 
 # ==================== LOAD ML MODEL ====================
 
-# Set Keras to use TensorFlow backend for compatibility
+model = None
+scaler = None
+label_encoder = None
+
 try:
+    # Set Keras to use TensorFlow backend for compatibility
     model = tf.keras.models.load_model(
         MODEL_DIR / "procrastination_bilstm.h5",
         compile=False,
         safe_mode=False
     )
+    print("Model loaded successfully with safe_mode=False")
 except Exception as e:
     print(f"Error loading model with safe_mode=False: {e}")
-    print("Attempting to load with custom objects...")
-    from tensorflow.keras.layers import LSTM, Bidirectional
-    custom_objects = {
-        'LSTM': LSTM,
-        'Bidirectional': Bidirectional
-    }
-    model = tf.keras.models.load_model(
-        MODEL_DIR / "procrastination_bilstm.h5",
-        compile=False,
-        custom_objects=custom_objects
-    )
+    try:
+        print("Attempting to load with custom objects...")
+        custom_objects = {
+            'LSTM': tf.keras.models.LSTM,
+            'Bidirectional': tf.keras.models.Bidirectional
+        }
+        model = tf.keras.models.load_model(
+            MODEL_DIR / "procrastination_bilstm.h5",
+            compile=False,
+            custom_objects=custom_objects
+        )
+        print("Model loaded successfully with custom objects")
+    except Exception as e2:
+        print(f"Error loading model with custom objects: {e2}")
+        print("WARNING: Model will not be available. Using mock model for testing.")
+        model = None
 
-with open(MODEL_DIR / "scaler.pkl", "rb") as f:
-    scaler = pickle.load(f)
+try:
+    with open(MODEL_DIR / "scaler.pkl", "rb") as f:
+        scaler = pickle.load(f)
+    print("Scaler loaded successfully")
+except Exception as e:
+    print(f"Error loading scaler: {e}")
+    scaler = None
 
-with open(MODEL_DIR / "label_encoder.pkl", "rb") as f:
-    label_encoder = pickle.load(f)
+try:
+    with open(MODEL_DIR / "label_encoder.pkl", "rb") as f:
+        label_encoder = pickle.load(f)
+    print("Label encoder loaded successfully")
+except Exception as e:
+    print(f"Error loading label encoder: {e}")
+    label_encoder = None
 
 # ==================== APP SETUP ====================
 
@@ -179,5 +200,4 @@ def health():
 # ==================== RUN ====================
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
