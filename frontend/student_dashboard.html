@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html class="light" lang="en">
 
 <head>
@@ -8,9 +7,6 @@
     <title>ProActive Student Dashboard</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap"
-        rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
@@ -52,12 +48,11 @@
 
 <body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-gray-100 font-display">
     <div class="flex h-screen flex-col overflow-hidden">
-        <!-- Top Navigation Bar -->
         <header
             class="flex h-16 items-center justify-between border-b border-solid border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark px-6 py-3 shrink-0 z-10">
             <div class="flex items-center gap-3">
                 <div class="size-8 text-primary">
-                    <svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                    <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                         <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z"
                             fill-rule="evenodd"></path>
                     </svg>
@@ -76,7 +71,6 @@
             </div>
         </header>
         <div class="flex flex-1 overflow-hidden">
-            <!-- Sidebar Navigation -->
             <aside
                 class="flex w-64 flex-col justify-between border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark p-4 shrink-0">
                 <div class="flex flex-col gap-4">
@@ -102,13 +96,8 @@
                         </a>
                         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                             href="#">
-                            <span class="material-symbols-outlined text-[24px]">insights</span>
-                            <p class="text-sm font-medium">Analytics</p>
-                        </a>
-                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                            href="#">
-                            <span class="material-symbols-outlined text-[24px]">settings</span>
-                            <p class="text-sm font-medium">Preferences</p>
+                            <span class="material-symbols-outlined text-[24px]">forum</span>
+                            <p class="text-sm font-medium">MCII Chat</p>
                         </a>
                     </nav>
                 </div>
@@ -125,7 +114,6 @@
                     </a>
                 </div>
             </aside>
-            <!-- Main Content Area -->
             <main class="flex-1 overflow-y-auto p-6 lg:p-10">
                 <div class="mx-auto max-w-6xl">
                     <div class="mb-8">
@@ -133,7 +121,6 @@
                         <p class="text-gray-500">Here's what your AI coach is seeing today.</p>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        <!-- AI Risk Assessment Card -->
                         <div class="lg:col-span-8">
                             <div
                                 class="flex flex-col overflow-hidden rounded-xl border border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-950/20 shadow-sm">
@@ -171,7 +158,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Weekly Activity Chart -->
                             <div
                                 class="mt-6 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark p-6 shadow-sm">
                                 <div class="flex items-center justify-between mb-6">
@@ -185,8 +171,8 @@
                                     </div>
                                 </div>
                                 <div class="h-48 w-full">
-                                    <svg class="w-full h-full" fill="none" preserveaspectratio="none"
-                                        viewbox="0 0 478 150" xmlns="http://www.w3.org/2000/svg">
+                                    <svg class="w-full h-full" fill="none" preserveAspectRatio="none"
+                                        viewBox="0 0 478 150" xmlns="http://www.w3.org/2000/svg">
                                         <path
                                             d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25V149H0V109Z"
                                             fill="url(#activityGradient)"></path>
@@ -194,11 +180,11 @@
                                             d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25"
                                             stroke="#136dec" stroke-linecap="round" stroke-width="3"></path>
                                         <defs>
-                                            <lineargradient gradientunits="userSpaceOnUse" id="activityGradient"
+                                            <linearGradient gradientUnits="userSpaceOnUse" id="activityGradient"
                                                 x1="236" x2="236" y1="1" y2="149">
                                                 <stop stop-color="#136dec" stop-opacity="0.2"></stop>
                                                 <stop offset="1" stop-color="#136dec" stop-opacity="0"></stop>
-                                            </lineargradient>
+                                            </linearGradient>
                                         </defs>
                                     </svg>
                                 </div>
@@ -213,9 +199,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Sidebar Widgets -->
                         <div class="lg:col-span-4 flex flex-col gap-6">
-                            <!-- MCII Intervention Panel -->
                             <div
                                 class="rounded-xl border border-blue-100 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-6 shadow-sm">
                                 <div class="flex items-center gap-2 mb-4">
@@ -242,7 +226,6 @@
                                     </button>
                                 </div>
                             </div>
-                            <!-- Deadlines & Checklist -->
                             <div
                                 class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark p-6 shadow-sm flex-1">
                                 <div class="flex items-center justify-between mb-4">
@@ -320,7 +303,6 @@
                 </div>
             </main>
         </div>
-        <!-- Floating Action Button -->
         <button
             class="fixed bottom-8 right-8 size-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-105 active:scale-95 group z-20">
             <span class="material-symbols-outlined text-3xl">add</span>
@@ -329,6 +311,7 @@
                 Task</span>
         </button>
     </div>
+
 </body>
 
 </html>

@@ -6,9 +6,10 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>ProActive Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap"
         rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
     <script id="tailwind-config">
         tailwind.config = {
@@ -21,7 +22,13 @@
                         "background-dark": "#101822",
                     },
                     fontFamily: {
-                        "display": ["Lexend"]
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
                     },
                 },
             },
@@ -38,362 +45,223 @@
     </style>
 </head>
 
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
-    <div class="flex h-screen overflow-hidden flex-col">
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-gray-100 font-display">
+    <div class="flex h-screen flex-col overflow-hidden">
         <header
-            class="flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-6 py-3 shrink-0 z-10">
+            class="flex h-16 items-center justify-between border-b border-solid border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark px-6 py-3 shrink-0 z-10">
             <div class="flex items-center gap-3">
                 <div class="size-8 text-primary">
-                    <svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                        <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z"
+                    <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd"
+                            d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V44H42V30.6667V17.3333H24V4Z"
                             fill-rule="evenodd"></path>
                     </svg>
                 </div>
                 <h2 class="text-xl font-bold leading-tight tracking-tight">ProActive</h2>
             </div>
             <div class="flex items-center gap-6">
-                <div class="flex-1 max-w-lg hidden lg:block">
-                    <div class="relative">
-                        <span
-                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
-                        <input
-                            class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 py-2 text-sm focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-700 transition-all placeholder:text-slate-400"
-                            placeholder="Search student..." type="text" />
-                    </div>
+                <div class="hidden md:flex flex-col items-end">
+                    <span class="text-sm font-semibold">Dr. Sarah Miller</span>
+                    <span class="text-xs text-gray-500">System Administrator</span>
                 </div>
                 <button
-                    class="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-lg transition-colors border border-slate-200 dark:border-slate-700">
-                    <span class="material-symbols-outlined text-lg">download</span>
-                    <span class="hidden md:inline">Export CSV</span>
-                </button>
-                <div class="hidden md:flex flex-col items-end">
-                    <span class="text-sm font-semibold">Dr. Aris Thorne</span>
-                    <span class="text-xs text-slate-500">Admin Account</span>
-                </div>
-                <button onclick="logout()"
-                    class="flex min-w-[84px] items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold transition hover:bg-primary/90">
+                    class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold transition hover:bg-blue-700">
                     <span class="truncate">Logout</span>
                 </button>
             </div>
         </header>
         <div class="flex flex-1 overflow-hidden">
             <aside
-                class="w-64 flex-shrink-0 bg-white dark:bg-background-dark border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between p-4">
+                class="flex w-64 flex-col justify-between border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark p-4 shrink-0">
                 <div class="flex flex-col gap-4">
                     <div class="flex items-center gap-3 px-3 py-4">
-                        <div class="size-12 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center border-2 border-primary/20"
-                            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8fk9M3OWsjR5o8oLXsKP1JAYWA52DY0ilXaUmavKdr9TkFI12sDCDTvWUyu2S73tienenRxq1Z2Eb7wrIfOiu-HQFn6m28tEXnuuqUyIBceBuJWr9aCuGwsFv08dzHhB8rchX5ACSfx4ykSo6NNPT3Bi5fmMlvk2xDnBWRxI-4-yB9Co-KXIFpOm2fdE56bPtBRj9EGBJZquHzaa8rNvGhCO1x5OqpasbCVOa7cX3_Iz8DXVUHZhPwDfl_1KQ1Q_AB2PCcFRzmtGK');">
+                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12 border-2 border-primary/20"
+                            style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDsTBkc5ByAOUSBrCYCCLzzDGLhC0K9TZSQxUS6hG-PZgq2Q17RZ0BZeXGVnIBlkELYAtRv8NwDHByFiKBbTZhZcQOAzib8HlASVJTpjB_f5EEyBTaRcirBX5IlOzVNcDdwfiUcNNjxGAq25HVoNRWaEasUCdGbIzVTOH4Q6x4bYjUTkvbpqyDDck2LiL7Sd7Xyhv8KEIVxuDf9lar183_qmlfJi67WzKiWmSvh7u1bPj6IHQKk63fpe05vLZ3WuAgeRgeB0niAHTS5");'>
                         </div>
                         <div class="flex flex-col">
-                            <h1 class="text-base font-medium">Admin Panel</h1>
-                            <p class="text-slate-500 text-xs mt-1">System Monitor</p>
+                            <h1 class="text-base font-medium leading-none">Admin Panel</h1>
+                            <p class="text-gray-500 text-xs mt-1">Platform Overview</p>
                         </div>
                     </div>
                     <nav class="flex flex-col gap-2">
-                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-white"
-                            href="admin_dashboard.html">
-                            <span class="material-symbols-outlined">dashboard</span>
-                            <span class="font-medium text-sm">Overview</span>
-                        </a>
-                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                            href="#">
-                            <span class="material-symbols-outlined">group</span>
-                            <span class="font-medium text-sm">Students</span>
-                        </a>
-                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                            href="#">
-                            <span class="material-symbols-outlined">notifications_active</span>
-                            <span class="font-medium text-sm">Alerts</span>
-                        </a>
-                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                            href="#">
-                            <span class="material-symbols-outlined">insights</span>
-                            <span class="font-medium text-sm">Predictions</span>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary" href="#">
+                            <span class="material-symbols-outlined text-[24px]">dashboard</span>
+                            <p class="text-sm font-medium">Overview</p>
                         </a>
                     </nav>
                 </div>
-                <div class="flex flex-col gap-1 border-t border-slate-200 dark:border-slate-800 pt-4">
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                <div class="flex flex-col gap-1 border-t border-gray-200 dark:border-gray-800 pt-4">
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                         href="#">
-                        <span class="material-symbols-outlined">account_circle</span>
-                        <p class="text-sm font-medium">Profile</p>
-                    </a>
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-                        href="#">
-                        <span class="material-symbols-outlined">settings</span>
-                        <p class="text-sm font-medium">Settings</p>
+                        <span class="material-symbols-outlined text-[24px]">help</span>
+                        <p class="text-sm font-medium">Help Center</p>
                     </a>
                 </div>
             </aside>
-            <main class="flex-1 overflow-y-auto p-8 space-y-8">
-                <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div
-                        class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="text-slate-500 text-sm font-medium">Total Students</span>
-                            <div class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-primary">
-                                <span class="material-symbols-outlined text-xl">school</span>
-                            </div>
+            <main class="flex-1 overflow-y-auto p-6 lg:p-10">
+                <div class="mx-auto max-w-6xl">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h1 class="text-2xl font-bold">Admin Dashboard</h1>
+                            <p class="text-gray-500 text-sm">Monitoring student performance and AI predictions</p>
                         </div>
-                        <div class="flex items-end gap-2">
-                            <h3 class="text-3xl font-bold dark:text-white">1,250</h3>
-                            <span class="text-green-500 text-sm font-semibold mb-1 flex items-center">
-                                <span class="material-symbols-outlined text-xs">arrow_upward</span>12%
-                            </span>
-                        </div>
+                        <button
+                            class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-sm hover:bg-blue-700 transition">
+                            <span class="material-symbols-outlined text-sm">download</span>
+                            Export Report
+                        </button>
                     </div>
-                    <div
-                        class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="text-slate-500 text-sm font-medium">High Risk %</span>
-                            <div class="p-2 bg-red-50 dark:bg-red-900/30 rounded-lg text-red-500">
-                                <span class="material-symbols-outlined text-xl">warning</span>
-                            </div>
-                        </div>
-                        <div class="flex items-end gap-2">
-                            <h3 class="text-3xl font-bold dark:text-white">18.4%</h3>
-                            <span class="text-red-500 text-sm font-semibold mb-1 flex items-center">
-                                <span class="material-symbols-outlined text-xs">arrow_upward</span>3.2%
-                            </span>
-                        </div>
-                    </div>
-                    <div
-                        class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="text-slate-500 text-sm font-medium">Active Today</span>
-                            <div class="p-2 bg-green-50 dark:bg-green-900/30 rounded-lg text-green-500">
-                                <span class="material-symbols-outlined text-xl">bolt</span>
-                            </div>
-                        </div>
-                        <div class="flex items-end gap-2">
-                            <h3 class="text-3xl font-bold dark:text-white">842</h3>
-                            <span class="text-green-500 text-sm font-semibold mb-1 flex items-center">
-                                <span class="material-symbols-outlined text-xs">arrow_upward</span>5%
-                            </span>
-                        </div>
-                    </div>
-                    <div
-                        class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="text-slate-500 text-sm font-medium">Avg Engagement</span>
-                            <div class="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg text-purple-500">
-                                <span class="material-symbols-outlined text-xl">bar_chart</span>
-                            </div>
-                        </div>
-                        <div class="flex items-end gap-2">
-                            <h3 class="text-3xl font-bold dark:text-white">72%</h3>
-                            <span class="text-slate-400 text-sm font-semibold mb-1">Stable</span>
-                        </div>
-                    </div>
-                </section>
-                <div class="flex flex-col lg:flex-row gap-8">
-                    <div class="flex-[3] space-y-4">
-                        <div class="flex items-center justify-between">
-                            <h2 class="text-xl font-bold dark:text-white">Student Overview</h2>
-                            <div class="flex items-center gap-2">
-                                <button
-                                    class="text-sm px-3 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">Filter</button>
-                                <button
-                                    class="text-sm px-3 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">Sort</button>
-                            </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                        <div
+                            class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                            <p class="text-gray-500 text-sm font-medium">Total Students</p>
+                            <h3 class="text-3xl font-bold mt-1">1,284</h3>
+                            <p class="text-green-600 text-xs mt-2 font-medium flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">trending_up</span> +12% this month
+                            </p>
                         </div>
                         <div
-                            class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                            <table class="w-full text-left">
-                                <thead
-                                    class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
-                                    <tr>
-                                        <th
-                                            class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                            Name</th>
-                                        <th
-                                            class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                            Course</th>
-                                        <th
-                                            class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">
-                                            Last Active</th>
-                                        <th
-                                            class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">
-                                            Risk Level</th>
-                                        <th
-                                            class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">
-                                            Actions</th>
+                            class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                            <p class="text-gray-500 text-sm font-medium">High Risk Alerts</p>
+                            <h3 class="text-3xl font-bold mt-1 text-red-500">42</h3>
+                            <p class="text-red-500 text-xs mt-2 font-medium flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">warning</span> Requires attention
+                            </p>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                            <p class="text-gray-500 text-sm font-medium">MCII Engagement</p>
+                            <h3 class="text-3xl font-bold mt-1">86%</h3>
+                            <p class="text-green-600 text-xs mt-2 font-medium flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">trending_up</span> +5% vs last week
+                            </p>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                            <p class="text-gray-500 text-sm font-medium">Avg. Progress</p>
+                            <h3 class="text-3xl font-bold mt-1">74.2%</h3>
+                            <p class="text-gray-500 text-xs mt-2 font-medium flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">horizontal_rule</span> Stable trend
+                            </p>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+                        <div
+                            class="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                            <h2 class="font-bold text-lg">Recent Student Activity</h2>
+                            <div class="flex gap-2">
+                                <div class="relative">
+                                    <span
+                                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
+                                    <input
+                                        class="pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-800 border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-primary"
+                                        placeholder="Search students..." type="text" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr
+                                        class="bg-gray-50 dark:bg-gray-800/50 text-gray-500 text-xs font-bold uppercase tracking-wider">
+                                        <th class="px-6 py-4">Student Name</th>
+                                        <th class="px-6 py-4">Course</th>
+                                        <th class="px-6 py-4">AI Risk Level</th>
+                                        <th class="px-6 py-4">Last Active</th>
+                                        <th class="px-6 py-4">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
+                                        <td class="px-6 py-4 flex items-center gap-3">
+                                            <div
+                                                class="size-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                                                AJ</div>
+                                            <span class="font-medium text-sm text-gray-900 dark:text-gray-100">Alex
+                                                Johnson</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">Physics 101</td>
                                         <td class="px-6 py-4">
-                                            <div class="flex items-center gap-3">
-                                                <div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center"
-                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC2VvApV28uuW5HelkJLFA5M3HZcVepPYoRZ5W55Ma5xGtQmIq1vNWSWE2e9EQ3j7DiaSUFAumFE92Sdg7q0jZcTxGTitdfxoiaNWZS_il1IuOLu-WzHsNqh1vgSep1mTHV2Rqr3z4PLbc_ikHH-6B07gBTRihinpvSZYKwUBub_gPQ-ZugvbBsLVj0H8yJ3RyQ4xnZ_Hnvxe_Y7FqY8gBnrFi1cTH9zM3_YnLvZ129YP_6bLVV-yhKEbE1XnMXTgtBylMssARcNa1D');">
-                                                </div>
-                                                <span class="text-sm font-medium dark:text-white">Marcus Jenkins</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Computer
-                                            Science 101</td>
-                                        <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 text-center">3
-                                            hours ago</td>
-                                        <td class="px-6 py-4 text-center">
                                             <span
-                                                class="px-2.5 py-1 text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">High</span>
+                                                class="px-2 py-1 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-[10px] font-bold uppercase">High
+                                                Risk</span>
                                         </td>
-                                        <td class="px-6 py-4 text-right">
-                                            <button class="text-primary hover:text-blue-700 font-semibold text-sm">View
-                                                Profile</button>
+                                        <td class="px-6 py-4 text-sm text-gray-500">2 mins ago</td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-primary hover:underline text-sm font-medium">View
+                                                Detail</button>
                                         </td>
                                     </tr>
-                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
+                                        <td class="px-6 py-4 flex items-center gap-3">
+                                            <div
+                                                class="size-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-xs">
+                                                EM</div>
+                                            <span class="font-medium text-sm text-gray-900 dark:text-gray-100">Emma
+                                                Wilson</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">Calculus II</td>
                                         <td class="px-6 py-4">
-                                            <div class="flex items-center gap-3">
-                                                <div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center"
-                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBjhCWPneq3pmTm7rYu-vCHBMtBajZMWSY74O2TTKYdqJpBxO1fXHTnYomwk2qJs0dtcO_ABBYtYoc1JdeVuNVqQUU5Y0IlsiIcc4nhHnE-sUwvWrNTKP7paIsQVvM-kj3gXwBmjoQqPXTItu1AqiJwb5ma3bfbug2wG6V2US6vxItfi_1eE2zMUXL0OBAA0ZNYb5Dr6Ied3Wpe3uX6Fqe3RxcjJghRykn-rl0wGS_U-5EAEYKB6mQxN9MRxN1cGU3LHCZdh4gQM8i2');">
-                                                </div>
-                                                <span class="text-sm font-medium dark:text-white">Elena Rodriguez</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Marketing
-                                            Strategy</td>
-                                        <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 text-center">12
-                                            mins ago</td>
-                                        <td class="px-6 py-4 text-center">
                                             <span
-                                                class="px-2.5 py-1 text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">Low</span>
+                                                class="px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] font-bold uppercase">Low
+                                                Risk</span>
                                         </td>
-                                        <td class="px-6 py-4 text-right">
-                                            <button class="text-primary hover:text-blue-700 font-semibold text-sm">View
-                                                Profile</button>
+                                        <td class="px-6 py-4 text-sm text-gray-500">1 hour ago</td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-primary hover:underline text-sm font-medium">View
+                                                Detail</button>
                                         </td>
                                     </tr>
-                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
+                                        <td class="px-6 py-4 flex items-center gap-3">
+                                            <div
+                                                class="size-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs">
+                                                MD</div>
+                                            <span class="font-medium text-sm text-gray-900 dark:text-gray-100">Marcus
+                                                Davis</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">Art History</td>
                                         <td class="px-6 py-4">
-                                            <div class="flex items-center gap-3">
-                                                <div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center"
-                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBuCJCzbQYnue7hkGdSP2Q8px5LXM87q4gvewPYAtq9OFGOn-L49uQlB8I8Bu1cgtGuiDhpQ3aeAIIQ0RKaylBGZegmTfsWWqCKMib3_3G-NCagVuwR-yedkrr6ubT6F-niLAf-eLOio1BM3FrAoRlIvnQK0zrxj8l7SjZok-dgdqiktSQVXf-NpaF2h4cqB50FHC6ZPQkpDXuuXgzEVvT2MfaqF8kVsQgwpcvWhHHQDi1Z6LhFIcTexQSyhrzpjhS-VP68pXCmsYcF');">
-                                                </div>
-                                                <span class="text-sm font-medium dark:text-white">Samual Wright</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Business Ethics
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 text-center">2
-                                            days ago</td>
-                                        <td class="px-6 py-4 text-center">
                                             <span
-                                                class="px-2.5 py-1 text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full">Medium</span>
+                                                class="px-2 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] font-bold uppercase">Medium
+                                                Risk</span>
                                         </td>
-                                        <td class="px-6 py-4 text-right">
-                                            <button class="text-primary hover:text-blue-700 font-semibold text-sm">View
-                                                Profile</button>
+                                        <td class="px-6 py-4 text-sm text-gray-500">4 hours ago</td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-primary hover:underline text-sm font-medium">View
+                                                Detail</button>
                                         </td>
                                     </tr>
-                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
+                                        <td class="px-6 py-4 flex items-center gap-3">
+                                            <div
+                                                class="size-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-xs">
+                                                SC</div>
+                                            <span class="font-medium text-sm text-gray-900 dark:text-gray-100">Sophia
+                                                Chen</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">Computer Science</td>
                                         <td class="px-6 py-4">
-                                            <div class="flex items-center gap-3">
-                                                <div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center"
-                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAPcRqc5DLZuiKraHC_lERkk3igdJvGouzNYLFeH07n6x9Vw3x2Sl06M8mgV5DSIuVKiHriB5u6TGNNnl5HmiEqn-dvFSc4gHCp-jRv6D2FidH63VKqWfcToVMzk6nrKQPfIjc8kiigC_bTUTkyzxmtVr_eprptB1Ug0_686rvDM4lu8xWftIq2XFa00iDo4VKS7aS9KaWLpOZu158zgAW9ashI4BpHk7qJg_NKv1eUrwbRbdjHCqO_Ng3i9gZG7zVz9cVdqf-43oe5');">
-                                                </div>
-                                                <span class="text-sm font-medium dark:text-white">Sarah Collins</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">Intro to
-                                            Psychology</td>
-                                        <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 text-center">
-                                            Just now</td>
-                                        <td class="px-6 py-4 text-center">
                                             <span
-                                                class="px-2.5 py-1 text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">High</span>
+                                                class="px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] font-bold uppercase">Low
+                                                Risk</span>
                                         </td>
-                                        <td class="px-6 py-4 text-right">
-                                            <button class="text-primary hover:text-blue-700 font-semibold text-sm">View
-                                                Profile</button>
+                                        <td class="px-6 py-4 text-sm text-gray-500">Yesterday</td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-primary hover:underline text-sm font-medium">View
+                                                Detail</button>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <div
-                                class="px-6 py-4 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                <span class="text-sm text-slate-500">Showing 1-4 of 1,250 students</span>
-                                <div class="flex gap-2">
-                                    <button
-                                        class="px-3 py-1 border border-slate-200 dark:border-slate-700 rounded text-sm hover:bg-white transition-colors">Prev</button>
-                                    <button
-                                        class="px-3 py-1 border border-slate-200 dark:border-slate-700 rounded text-sm hover:bg-white transition-colors">Next</button>
-                                </div>
-                            </div>
                         </div>
                     </div>
-                    <aside class="flex-1 space-y-4 min-w-[320px]">
-                        <div class="flex items-center justify-between">
-                            <h2 class="text-xl font-bold dark:text-white">Urgent Alerts</h2>
-                            <span class="px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">12
-                                NEW</span>
-                        </div>
-                        <div
-                            class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 shadow-sm">
-                            <div class="p-4 flex gap-3">
-                                <div class="size-2 bg-red-500 rounded-full mt-2 shrink-0"></div>
-                                <div class="space-y-1">
-                                    <p class="text-sm font-semibold dark:text-white">AI Prediction: Likely Drop-off</p>
-                                    <p class="text-xs text-slate-500 leading-relaxed">Sarah Collins has missed the last
-                                        2 lecture engagement quizzes. Risk increased by 40%.</p>
-                                    <div class="pt-2">
-                                        <button
-                                            class="text-[11px] font-bold text-primary uppercase tracking-wider">Contact
-                                            Student</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-4 flex gap-3">
-                                <div class="size-2 bg-red-500 rounded-full mt-2 shrink-0"></div>
-                                <div class="space-y-1">
-                                    <p class="text-sm font-semibold dark:text-white">Inactive Streak: 5 Days</p>
-                                    <p class="text-xs text-slate-500 leading-relaxed">Marcus Jenkins has not logged into
-                                        CS101 portal since Monday morning.</p>
-                                    <div class="pt-2">
-                                        <button
-                                            class="text-[11px] font-bold text-primary uppercase tracking-wider">Review
-                                            Logs</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-4 flex gap-3">
-                                <div class="size-2 bg-amber-500 rounded-full mt-2 shrink-0"></div>
-                                <div class="space-y-1">
-                                    <p class="text-sm font-semibold dark:text-white">Deadline Approaching</p>
-                                    <p class="text-xs text-slate-500 leading-relaxed">8 students in Bio202 have not
-                                        started their final project due in 48 hours.</p>
-                                    <div class="pt-2">
-                                        <button class="text-[11px] font-bold text-primary uppercase tracking-wider">Send
-                                            Reminder</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-4 text-center">
-                                <button class="text-sm text-slate-500 hover:text-primary font-medium">View All
-                                    Notifications</button>
-                            </div>
-                        </div>
-                        <div class="bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20 p-5 space-y-4">
-                            <h3 class="text-sm font-bold text-primary uppercase tracking-wider">Engagement Trend</h3>
-                            <div class="h-24 flex items-end justify-between gap-1">
-                                <div class="w-full bg-primary/20 rounded-t h-[40%]"></div>
-                                <div class="w-full bg-primary/20 rounded-t h-[60%]"></div>
-                                <div class="w-full bg-primary/20 rounded-t h-[55%]"></div>
-                                <div class="w-full bg-primary/20 rounded-t h-[80%]"></div>
-                                <div class="w-full bg-primary/40 rounded-t h-[90%]"></div>
-                                <div class="w-full bg-primary/30 rounded-t h-[70%]"></div>
-                                <div class="w-full bg-primary rounded-t h-[100%]"></div>
-                            </div>
-                            <p class="text-xs text-slate-500 text-center">AI predicts 12% rise in procrastination this
-                                week due to midterms.</p>
-                        </div>
-                    </aside>
                 </div>
             </main>
         </div>
     </div>
-    <script src="js/dashboard.js"></script>
+
 </body>
 
 </html>
