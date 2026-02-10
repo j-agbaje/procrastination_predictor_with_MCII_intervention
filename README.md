@@ -1,361 +1,327 @@
-# Procrastination Risk Prediction Platform
-## Transfer Learning with Bi-LSTM and MCII-Based Interventions
+# ProActive - AI-Powered Student Productivity Platform
 
-**Author:** Jeremiah Agbaje  
-**Supervisor:** Bernard Lamptey  
-**Institution:** African Leadership University  
-**Project Type:** BSc Software Engineering Capstone
+**Master your time with AI-driven predictive tracking**
 
----
+ProActive uses BiLSTM neural networks and Mental Contrasting Implementation Intentions (MCII) to help students identify procrastination patterns before they become missed deadlines.
 
-## 📋 Project Description
+## 🎥 Video Demo
 
-This platform uses transfer learning to predict procrastination risk in online students, combining a Bi-LSTM neural network pre-trained on the Open University Learning Analytics Dataset (OULAD) with MCII-based interventions delivered through an AI-powered web interface.
-
-**Key Features:**
-- 🧠 Bi-LSTM model with attention mechanism
-- 📊 Real-time procrastination risk prediction (Low/Medium/High)
-- 💬 GPT-4 powered MCII intervention chatbot
-- 📈 Student dashboard with task tracking
-- 👨‍💼 Admin monitoring interface
-- 🔄 Transfer learning approach for limited local data
+[Insert Video Link Here]
 
 ---
 
-## 🔗 Links
+## 🚀 Features
 
-- **GitHub Repository:** [https://github.com/yourusername/procrastination-prediction](https://github.com/yourusername/procrastination-prediction)
-- **Live Demo:** [Coming soon - will be deployed on Render]
-- **Video Demo:** [Link to 5-10 min demo video]
+### Student Features
+- **AI Procrastination Prediction**: BiLSTM model analyzes engagement patterns to predict task delays
+- **MCII Intervention Assistant**: Chat-based cognitive behavioral intervention using proven psychological frameworks
+- **Smart Task Management**: Priority-based task organization with AI-driven recommendations
+- **Personalized Dashboard**: Real-time insights on study velocity, weekly activity, and productivity metrics
+- **Risk Alerts**: Proactive notifications for assignments at risk of delay
+
+### Admin Features
+- **Student Monitoring Dashboard**: Track student performance across courses
+- **High-Risk Alert System**: Identify students requiring immediate attention (42 high-risk alerts)
+- **MCII Engagement Tracking**: Monitor platform engagement (86% current rate)
+- **Performance Analytics**: View average progress (74.2%) and trends
+- **Detailed Activity Logs**: Individual risk levels, courses, and last active timestamps
 
 ---
 
-## 🏗️ Project Structure
+## 🏗️ Tech Stack
+
+### Backend
+- **FastAPI** - High-performance Python web framework
+- **MySQL** - Relational database for user and task management
+- **TensorFlow/Keras** - BiLSTM model training and serving
+- **Scikit-learn** - Feature preprocessing and encoding
+
+### Frontend
+- **HTML/CSS/JavaScript** - Responsive UI components
+- **Fetch API** - RESTful communication with backend
+
+### Machine Learning
+- **BiLSTM Neural Network** - Sequential pattern recognition for procrastination prediction
+- **Label Encoding** - Categorical feature transformation
+- **Standard Scaling** - Feature normalization
+- **Training Data**: Open University Learning Analytics Dataset (OULAD)
+
+---
+
+## 📁 Project Structure
 
 ```
-procrastination-prediction/
-├── README.md
-├── backend
-│   ├── database
-│   ├── main.py
-│   └── models
-│       └── saved_models
-│           ├── best_model (1).h5
-│           ├── features_with_labels.csv
-│           ├── label_encoder.pkl
+ProActive/
+├── backend/
+│   ├── main.py                    # FastAPI server & endpoints
+│   ├── database/
+│   │   └── schema.sql            # MySQL database schema
+│   └── models/
+│       └── saved_models/
 │           ├── procrastination_bilstm.h5
+│           ├── label_encoder.pkl
 │           └── scaler.pkl
-├── data
-│   ├── oulad
-│   └── processed
-├── designs
-│   └── screenshots
-│       ├── Admin dashboard.png
-│       ├── Log in page.png
-│       ├── sign up page.png
-│       └── student dashboard.png
-├── frontend
+├── frontend/
+│   ├── student_dashboard.html
 │   ├── admin_dashboard.html
-│   ├── index.html
-│   ├── js
-│   │   └── api.js
+│   ├── mcii_chat.html
+│   ├── tasks.html
+│   ├── login.html
 │   ├── signup.html
-│   └── student_dashboard.html
-├── ml_notebooks
-├── oulad_analysis_v2.ipynb
-├── requirements.txt
-└── tests
+│   └── js/
+│       ├── auth.js
+│       └── dashboard.js
+├── data/
+│   ├── oulad/                    # Raw OULAD dataset
+│   └── processed/                # Preprocessed features
+├── ml_notebooks/
+│   └── oulad_analysis_v2.ipynb  # Model training notebook
+└── requirements.txt
 ```
 
 ---
 
-## 🚀 Setup Instructions
+## 🛠️ Installation & Setup
 
 ### Prerequisites
-- Python 3.10+
-- MySQL 8.0
-- Node.js (optional, for frontend build tools)
-- Google Colab account (for model training with GPU)
+```bash
+Python 3.8+
+MySQL 8.0+
+pip package manager
+```
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/yourusername/procrastination-prediction.git
-cd procrastination-prediction
+git clone https://github.com/yourusername/proactive.git
+cd proactive
 ```
 
-### 2. Set Up Virtual Environment
-```bash
-# Create virtual environment
-python -m venv venv
-
-# Activate (Windows)
-venv\Scripts\activate
-
-# Activate (Mac/Linux)
-source venv/bin/activate
-```
-
-### 3. Install Dependencies
+### 2. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Download OULAD Dataset
-1. Visit: https://analyse.kmi.open.ac.uk/open_dataset
-2. Download all CSV files
-3. Place in `data/oulad/` directory
-
-Alternative (automated):
+### 3. Database Setup
 ```bash
-cd data/oulad
-wget https://analyse.kmi.open.ac.uk/open_dataset/download -O oulad.zip
-unzip oulad.zip
-```
-
-### 5. Train ML Model (Google Colab)
-1. Open `ml_notebooks/oulad_procrastination_analysis.ipynb` in Google Colab
-2. Upload OULAD data to Google Drive
-3. Run all cells to:
-   - Create procrastination labels via K-Means clustering
-   - Train Bi-LSTM model
-   - Save model artifacts
-4. Download trained model files to `backend/models/saved_models/`
-
-### 6. Set Up Database
-```bash
-# Create MySQL database
+# Create database
 mysql -u root -p
-CREATE DATABASE procrastination_db;
+CREATE DATABASE proactive_db;
+USE proactive_db;
+SOURCE backend/database/schema.sql;
 exit;
-
-# Run migrations (create tables)
-python backend/database/init_db.py
 ```
 
-### 7. Configure Environment Variables
-Create `.env` file in root directory:
-```env
-# Database
-DATABASE_URL=mysql://root:password@localhost:3306/procrastination_db
-
-# OpenAI API
-OPENAI_API_KEY=your_openai_api_key_here
-
-# JWT Secret
-SECRET_KEY=your_secret_key_here
-
-# Environment
-ENVIRONMENT=development
-```
-
-### 8. Run Backend
+### 4. Run Backend Server
 ```bash
 cd backend
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Backend will be available at: `http://localhost:8000`
+### 5. Access Application
+Open browser to `http://localhost:8000`
 
-### 9. Serve Frontend
-```bash
-# Simple Python server
-cd frontend
-python -m http.server 3000
+---
+
+## 🗄️ Database Schema
+
+### Core Tables
+- **Students**: User authentication, enrollment data, risk levels
+- **Admins**: Admin authentication and access control
+- **Tasks**: Student task management with status tracking
+- **Predictions**: AI-generated risk predictions with confidence scores
+- **MCIIInterventions**: MCII prompts and student responses
+- **BehavioralLogs**: Session tracking and engagement metrics
+- **Surveys**: Student survey responses (JSON format)
+
+### Key Relationships
+- Students ← Tasks (1:N)
+- Students ← Predictions (1:N)
+- Predictions ← MCIIInterventions (1:N)
+- Students ← BehavioralLogs (1:N)
+
+---
+
+## 🧠 ML Model Architecture
+
+### BiLSTM Procrastination Predictor
+
+**Input Features:**
+- VLE interaction counts
+- Assignment submission timing
+- Assessment scores
+- Study session duration
+- Task completion velocity
+
+**Architecture:**
+- Bidirectional LSTM layers
+- Dropout for regularization
+- Dense layers with softmax activation
+- Output: Risk classification (Low/Medium/High) + confidence score
+
+**Training:**
+- Dataset: OULAD (32,593 students, 22 courses)
+- Validation split: 80/20
+- Loss: Categorical crossentropy
+- Optimizer: Adam
+
+**Model Artifacts:**
 ```
-
-Frontend will be available at: `http://localhost:3000`
-
-Alternative (use Live Server extension in VS Code)
-
-### 10. Test API Endpoints
-```bash
-# Using curl
-curl http://localhost:8000/api/health
-
-# Using Postman
-Import collection from docs/postman_collection.json
-```
-
----
-
-## 📊 ML Model Details
-
-### Pre-training (OULAD)
-- **Dataset:** 32,593 students, 10+ million VLE interactions
-- **Features:** Late submission rate, study irregularity, last-minute activity, login gaps
-- **Clustering:** K-Means (k=3) to create Low/Medium/High risk labels
-- **Architecture:** Bi-LSTM with attention (128→64→32 units)
-- **Performance:** ~75-85% accuracy (varies by sample)
-
-### Transfer Learning (Local Data)
-- **Fine-tuning:** Freeze early layers, train on local survey data
-- **Local Dataset:** 100-120 students (survey responses)
-- **Adaptation:** Institution-specific patterns
-
----
-
-## 🎨 Design Files
-
-### Figma Mockups
-- [Student Dashboard](link-to-figma)
-- [Admin Interface](link-to-figma)
-- [Risk Display Components](link-to-figma)
-
-### Screenshots
-See `docs/screenshots/` for interface examples
-
----
-
-## 🚢 Deployment Plan
-
-### Current Status: ✅ Checkpoint Demo
-- ML model pre-training complete
-- Basic frontend structure ready
-- FastAPI backend skeleton functional
-
-### Phase 1: Initial Deployment (Feb 6, 2026)
-- Deploy backend to **Render** (free tier)
-- Deploy frontend to **Vercel/Netlify**
-- Basic prediction endpoint working
-
-### Phase 2: Full Deployment (Feb 27, 2026)
-- Complete MCII chatbot integration
-- Admin dashboard finalized
-- Production database setup
-- Security hardening (HTTPS, rate limiting)
-
-### Deployment Commands
-```bash
-# Backend (Render)
-# Connect GitHub repo to Render
-# Build command: pip install -r requirements.txt
-# Start command: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
-
-# Frontend (Vercel)
-vercel --prod
+backend/models/saved_models/
+├── procrastination_bilstm.h5  # Trained model weights
+├── label_encoder.pkl           # Risk level encoder
+└── scaler.pkl                  # Feature scaler
 ```
 
 ---
 
-## 🧪 Testing
+## 🔌 API Endpoints
 
-### Run Unit Tests
-```bash
-pytest tests/ -v
+### Authentication
+```
+POST   /api/auth/signup       # Create student account
+POST   /api/auth/login        # User login
+POST   /api/auth/logout       # End session
 ```
 
-### Test API Endpoints
-```bash
-# Health check
-curl http://localhost:8000/api/health
+### Student Operations
+```
+GET    /api/student/profile   # Get student data
+PUT    /api/student/profile   # Update profile
+GET    /api/student/tasks     # Fetch tasks
+POST   /api/student/tasks     # Create task
+PATCH  /api/student/tasks/:id # Update task status
+```
 
-# Get prediction (requires auth token)
-curl -X POST http://localhost:8000/api/predict \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"student_id": 123}'
+### AI Predictions
+```
+GET    /api/predictions/:student_id  # Get risk predictions
+POST   /api/predict                  # Generate new prediction
+```
+
+### MCII Interventions
+```
+GET    /api/mcii/interventions       # Get intervention history
+POST   /api/mcii/chat                # MCII conversation endpoint
+```
+
+### Admin Dashboard
+```
+GET    /api/admin/dashboard          # Analytics overview
+GET    /api/admin/students           # Student list with risk levels
+GET    /api/admin/reports            # Export reports
 ```
 
 ---
 
-## 📹 Video Demo
+## ✅ Implementation Status
 
-**Duration:** 5-10 minutes  
-**Content:**
-1. Problem statement (30s)
-2. ML notebook walkthrough (2 min)
-   - OULAD data loading
-   - K-Means clustering
-   - Bi-LSTM training
-3. Web platform demo (3 min)
-   - Student dashboard
-   - Risk prediction
-   - MCII chatbot interaction
-4. Architecture overview (1 min)
-5. Deployment (30s)
+### Completed
+- ✅ FastAPI backend server with routing
+- ✅ User authentication (signup/login)
+- ✅ MySQL database schema
+- ✅ BiLSTM model training pipeline
+- ✅ Model serialization (H5, PKL files)
+- ✅ Frontend UI for all views
+- ✅ Navigation between pages
+- ✅ MCII intervention interface
 
-**Link:** [YouTube/Drive link here]
-
----
-
-## 🔑 Key Technologies
-
-### Backend
-- **FastAPI** - Modern Python web framework
-- **TensorFlow/Keras** - Deep learning
-- **SQLAlchemy** - ORM for MySQL
-- **OpenAI API** - GPT-4 for MCII interventions
-- **Pydantic** - Data validation
-
-### Frontend
-- **HTML/CSS/JavaScript** - Core web technologies
-- **Tailwind CSS** - Styling
-- **Chart.js** - Data visualization
-- **Fetch API** - HTTP requests
-
-### ML/Data
-- **Pandas/NumPy** - Data processing
-- **Scikit-learn** - K-Means clustering, preprocessing
-- **Matplotlib/Seaborn** - Visualization
-
-### DevOps
-- **Git/GitHub** - Version control
-- **Render** - Backend hosting
-- **Vercel** - Frontend hosting
-- **Google Colab** - Model training (free GPU)
+### In Progress
+- ⚠️ Model inference API integration
+- ⚠️ Real-time prediction endpoint
+- ⚠️ Task CRUD operations backend
+- ⚠️ Admin dashboard live data
 
 ---
 
-## 📝 Development Checklist
+## 📊 MCII Framework
 
-### ML Track ✅
-- [x] OULAD data preprocessing
-- [x] Feature engineering (procrastination indicators)
-- [x] K-Means clustering (create labels)
-- [x] Bi-LSTM model architecture
-- [x] Model training and evaluation
-- [x] Save model artifacts
-- [ ] Fine-tune on local data (Week 2)
+**Mental Contrasting and Implementation Intentions** - Evidence-based behavioral intervention:
 
-### FullStack Track ⏳
-- [x] FastAPI project setup
-- [x] Database schema design
-- [x] Frontend HTML/CSS structure
-- [ ] Authentication system
-- [ ] Prediction API endpoint
-- [ ] MCII chatbot integration
-- [ ] Student dashboard
-- [ ] Admin dashboard
+1. **Goal Identification**: Student defines academic objective
+2. **Obstacle Recognition**: AI guides identification of barriers
+3. **Implementation Intention**: Creates "if-then" action plans
+4. **Continuous Support**: 24/7 conversational assistance
 
-### Documentation 📚
-- [x] README.md
-- [x] Setup instructions
-- [ ] Architecture diagram
-- [ ] API documentation
-- [ ] User guide
-- [ ] Video demo
+**Example:**
+- **Goal**: "Finish calculus assignment on time"
+- **Obstacle**: "I keep checking social media"
+- **Implementation**: "If I feel like browsing social media, then I will close my phone and focus for 10 minutes first"
 
 ---
 
-## 👥 Contributors
+## 📱 Screenshots
 
-- **Jeremiah Agbaje** - Lead Developer
-- **Bernard Lamptey** - Project Supervisor
+### Login & Signup
+![Login Page](designs/screenshots/login.png)
+*Secure authentication with email and password*
+
+![Sign Up Page](designs/screenshots/sign_up.png)
+*Student registration with AI-powered insights included*
+
+### Student Dashboard
+![Student Dashboard](designs/screenshots/student_dashboard.png)
+*Real-time AI predictions, weekly activity graphs, and task prioritization*
+
+### MCII Chat Interface
+![MCII Intervention](designs/screenshots/mcii_intervention.png)
+*Interactive intervention assistant using Mental Contrasting and Implementation Intentions framework*
+
+### Task Management
+![Tasks View](designs/screenshots/tasks.png)
+*Priority-based task list with AI-driven scheduling recommendations*
+
+### Student Profile
+![Student Profile](designs/screenshots/student_profile.png)
+*Personalized productivity insights and procrastination risk assessment*
+
+### Admin Dashboard
+![Admin Dashboard](designs/screenshots/admin_dashboard.png)
+*Monitor 1,284 students, track 42 high-risk alerts, 86% MCII engagement*
+
+---
+
+## 🔬 Model Training Process
+
+See `ml_notebooks/oulad_analysis_v2.ipynb` for complete training pipeline:
+
+1. **Data Loading**: OULAD dataset ingestion
+2. **Feature Engineering**: Extract engagement metrics
+3. **Preprocessing**: Scaling, encoding, sequence padding
+4. **Model Training**: BiLSTM architecture
+5. **Evaluation**: Accuracy, precision, recall metrics
+6. **Serialization**: Save model artifacts
+
+---
+
+## 🚀 Future Enhancements
+
+- Real-time WebSocket notifications
+- Mobile application (React Native)
+- Advanced visualization dashboards
+- Integration with LMS platforms (Canvas, Moodle)
+- Multilingual MCII support
+- Improved model accuracy with transfer learning
 
 ---
 
 ## 📄 License
 
-This project is for academic purposes (BSc Capstone).
+MIT License - See LICENSE file for details
+
+---
+
+## 🙏 Acknowledgments
+
+- **OULAD Dataset**: Open University for learning analytics data
+- **MCII Framework**: Research by Gabriele Oettingen and Peter Gollwitzer
+- **Evidence-Based Design**: Educational psychology research
 
 ---
 
 ## 📧 Contact
 
-For questions or feedback:
-- Email: j.agbaje@alustudent.com
-- GitHub: [@j-agbaje](https://github.com/yourusername)
+For questions or feedback, please open an issue or contact the development team.
 
 ---
 
-**Last Updated:** February 27, 2026
+**Built with ❤️ for students struggling with procrastination**
