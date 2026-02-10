@@ -45,6 +45,25 @@
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background: #d1e7dd;
+            border: 1px solid #a3cfbb;
+            color: #0f5132;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <script src="js/auth.js"></script>
@@ -75,6 +94,8 @@
                     </button>
                 </div>
             </header>
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            <div id="success-message" class="success-message" style="display: none;"></div>
             <!-- Main Content Area -->
             <main class="flex-1 flex items-center justify-center p-6 md:p-12">
                 <div
@@ -94,6 +115,7 @@
                                 <span
                                     class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl">person</span>
                                 <input
+                                    id="name"
                                     class="form-input flex w-full rounded-lg text-[#111418] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#dbe0e6] dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary h-12 pl-12 pr-4 placeholder:text-[#617289] dark:placeholder:text-gray-500 text-base font-normal transition-all"
                                     placeholder="John Doe" type="text" />
                             </div>
@@ -106,6 +128,7 @@
                                 <span
                                     class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl">mail</span>
                                 <input
+                                    id="email"
                                     class="form-input flex w-full rounded-lg text-[#111418] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#dbe0e6] dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary h-12 pl-12 pr-4 placeholder:text-[#617289] dark:placeholder:text-gray-500 text-base font-normal transition-all"
                                     placeholder="name@university.edu" type="email" />
                             </div>
@@ -118,6 +141,7 @@
                                 <span
                                     class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl">lock</span>
                                 <input
+                                    id="password"
                                     class="form-input flex w-full rounded-lg text-[#111418] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#dbe0e6] dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary h-12 pl-12 pr-12 placeholder:text-[#617289] dark:placeholder:text-gray-500 text-base font-normal transition-all"
                                     placeholder="••••••••" type="password" />
                                 <button
@@ -134,16 +158,18 @@
                         </div>
                         <!-- Submit Button -->
                         <button
+                            id="signup-button"
                             class="flex w-full cursor-pointer items-center justify-center rounded-lg h-14 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 active:scale-[0.98] transition-all shadow-md mt-4"
                             type="submit">
                             <span>Create Account</span>
                         </button>
                     </form>
+                    <div id="error-message" style="display: none;"></div>
                     <!-- Bottom Navigation -->
                     <div class="mt-8 text-center border-t border-[#f0f2f4] dark:border-gray-800 pt-6">
                         <p class="text-[#617289] dark:text-gray-400 text-sm">
                             Already have an account?
-                            <a class="text-primary font-bold hover:underline ml-1" href="#">Log in</a>
+                            <a class="text-primary font-bold hover:underline ml-1" href="/">Log in</a>
                         </p>
                     </div>
                     <!-- Small Legal -->

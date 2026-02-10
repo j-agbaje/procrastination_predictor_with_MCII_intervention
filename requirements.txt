@@ -3,7 +3,7 @@ pandas==2.1.4
 numpy==1.26.3
 matplotlib==3.8.2
 seaborn==0.13.1
-scikit-learn==1.4.0
+scikit-learn==1.8.0
 
 # Deep Learning
 tensorflow==2.16.2
@@ -41,3 +41,6 @@ httpx==0.26.0
 # Optional: Jupyter for local notebook development
 jupyter==1.0.0
 ipykernel==6.28.0
+
+
+PyJWT==2.11.0
