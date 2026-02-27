@@ -1,4 +1,165 @@
-<!DOCTYPE html>
+{% extends "dashboard_base.html" %}
+{% block title %}Page Title | ProActive{% endblock %}
+
+{% block content %}
+<!-- paste only the <main> tag's inner content here -->
+                <div class="mx-auto max-w-6xl">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h1 class="text-2xl font-bold">Admin Dashboard</h1>
+                            <p class="text-gray-500 text-sm">Monitoring student performance and AI predictions</p>
+                        </div>
+                        <button
+                            class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-sm hover:bg-blue-700 transition">
+                            <span class="material-symbols-outlined text-sm">download</span>
+                            Export Report
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                        <div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                            <p class="text-gray-500 text-sm font-medium">Total Students</p>
+                            <h3 class="text-3xl font-bold mt-1">1,284</h3>
+                            <p class="text-green-600 text-xs mt-2 font-medium flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">trending_up</span> +12% this month
+                            </p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                            <p class="text-gray-500 text-sm font-medium">High Risk Alerts</p>
+                            <h3 class="text-3xl font-bold mt-1 text-red-500">42</h3>
+                            <p class="text-red-500 text-xs mt-2 font-medium flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">warning</span> Requires attention
+                            </p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                            <p class="text-gray-500 text-sm font-medium">MCII Engagement</p>
+                            <h3 class="text-3xl font-bold mt-1">86%</h3>
+                            <p class="text-green-600 text-xs mt-2 font-medium flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">trending_up</span> +5% vs last week
+                            </p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                            <p class="text-gray-500 text-sm font-medium">Avg. Progress</p>
+                            <h3 class="text-3xl font-bold mt-1">74.2%</h3>
+                            <p class="text-gray-500 text-xs mt-2 font-medium flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">horizontal_rule</span> Stable trend
+                            </p>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+                        <div class="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                            <h2 class="font-bold text-lg">Recent Student Activity</h2>
+                            <div class="flex gap-2">
+                                <div class="relative">
+                                    <span
+                                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
+                                    <input
+                                        class="pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-800 border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-primary"
+                                        placeholder="Search students..." type="text" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 dark:bg-gray-800/50 text-gray-500 text-xs font-bold uppercase tracking-wider">
+                                        <th class="px-6 py-4">Student Name</th>
+                                        <th class="px-6 py-4">Course</th>
+                                        <th class="px-6 py-4">AI Risk Level</th>
+                                        <th class="px-6 py-4">Last Active</th>
+                                        <th class="px-6 py-4">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
+                                        <td class="px-6 py-4 flex items-center gap-3">
+                                            <div
+                                                class="size-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                                                AJ</div>
+                                            <span class="font-medium text-sm text-gray-900 dark:text-gray-100">Alex
+                                                Johnson</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">Physics 101</td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-2 py-1 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-[10px] font-bold uppercase">High
+                                                Risk</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">2 mins ago</td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-primary hover:underline text-sm font-medium">View
+                                                Detail</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
+                                        <td class="px-6 py-4 flex items-center gap-3">
+                                            <div
+                                                class="size-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-xs">
+                                                EM</div>
+                                            <span class="font-medium text-sm text-gray-900 dark:text-gray-100">Emma
+                                                Wilson</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">Calculus II</td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] font-bold uppercase">Low
+                                                Risk</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">1 hour ago</td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-primary hover:underline text-sm font-medium">View
+                                                Detail</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
+                                        <td class="px-6 py-4 flex items-center gap-3">
+                                            <div
+                                                class="size-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs">
+                                                MD</div>
+                                            <span class="font-medium text-sm text-gray-900 dark:text-gray-100">Marcus
+                                                Davis</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">Art History</td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-2 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] font-bold uppercase">Medium
+                                                Risk</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">4 hours ago</td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-primary hover:underline text-sm font-medium">View
+                                                Detail</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
+                                        <td class="px-6 py-4 flex items-center gap-3">
+                                            <div
+                                                class="size-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-xs">
+                                                SC</div>
+                                            <span class="font-medium text-sm text-gray-900 dark:text-gray-100">Sophia
+                                                Chen</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">Computer Science</td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] font-bold uppercase">Low
+                                                Risk</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">Yesterday</td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-primary hover:underline text-sm font-medium">View
+                                                Detail</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+{% endblock %}
+
+
+<!-- !DOCTYPE html>
 <html class="light" lang="en">
 
 <head>
@@ -266,4 +427,4 @@
 
 </body>
 
-</html>
+</html> -->
