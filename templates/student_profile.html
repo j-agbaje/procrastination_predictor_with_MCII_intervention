@@ -1,4 +1,121 @@
-<!DOCTYPE html>
+{% extends "dashboard_base.html" %}
+{% block title %}Page Title | ProActive{% endblock %}
+
+{% block content %}
+<!-- paste only the <main> tag's inner content here -->
+                    <section
+                        class="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-slate-900 p-6 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm">
+                        <div class="flex flex-col md:flex-row items-center gap-6">
+                            <div class="size-24 rounded-2xl bg-slate-100 bg-cover bg-center border-4 border-white dark:border-slate-800 shadow-lg"
+                                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB9sJstCxngZGumVvcN9RCLziQdVPdSdfHSaR6hD3Pc3duchhP0TgGwWVA7cMlM-k6phidP-NpNwQFQwW27lEO9yAHcOJiBnkIhd0qUR6uBgeK6UneZant7IPln_pGMJJl6sxX7QVv4Bh5XkOnb098ehtwPTGNN5p6cnsYyzAUoxgSHGR1LiL-gaZiQ1cpP5iuU81wwZlc4tcS9duxAPuHwlYyDbQsfLBC7l9sBLQJecxd5h4IzavcUXTbEIhH6Wfgr7d3P7P2vcsUm')">
+                            </div>
+                            <div class="text-center md:text-left">
+                                <h3 class="text-2xl font-bold">Alex Johnson</h3>
+                                <p class="text-[#617289] dark:text-slate-400">Student ID: <span
+                                        class="font-mono text-primary font-semibold">STU-88421</span> | Major: Computer
+                                    Science</p>
+                                <div class="flex flex-wrap justify-center md:justify-start gap-2 mt-2">
+                                    <span
+                                        class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400 text-xs font-semibold rounded">Active
+                                        Student</span>
+                                    <span
+                                        class="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 text-xs font-semibold rounded">Senior
+                                        Year</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">edit</span>
+                            Edit Profile
+                        </button>
+                    </section>
+                    <section class="grid grid-cols-1 md:grid-cols-1 gap-6">
+                        <div
+                            class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-[#dbe0e6] dark:border-slate-800 flex items-center gap-4">
+                            <div
+                                class="size-12 rounded-lg bg-green-50 dark:bg-green-950/20 flex items-center justify-center text-green-600">
+                                <span class="material-symbols-outlined text-3xl">task_alt</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-[#617289]">Tasks Finished</p>
+                                <p class="text-2xl font-bold">148</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section>
+                        <div
+                            class="bg-gradient-to-br from-white to-blue-50 dark:from-slate-900 dark:to-slate-800 p-8 rounded-xl border border-primary/20 shadow-sm relative overflow-hidden">
+                            <div class="relative z-10 flex flex-col md:flex-row items-start gap-10">
+                                <div class="flex-1 space-y-4 text-left">
+                                    <div class="flex items-center justify-start gap-2">
+                                        <span class="material-symbols-outlined text-primary">auto_awesome</span>
+                                        <h4 class="text-xl font-bold text-primary">AI Productivity Insights</h4>
+                                    </div>
+                                    <p class="text-lg font-medium leading-relaxed">
+                                        "You are most productive between <span class="text-primary font-bold">10 AM and 1
+                                            PM</span>."
+                                    </p>
+                                    <p class="text-sm text-[#617289] dark:text-slate-400">
+                                        AI Predictor shows a <span class="text-amber-600 font-semibold italic">15% delay
+                                            risk</span> for tasks assigned on Thursdays.
+                                        Focus on early starts for end-of-week assignments to maintain your streak.
+                                    </p>
+                                    <div class="pt-4">
+                                        <p class="text-sm font-bold uppercase tracking-widest text-[#111418] dark:text-white">
+                                            Procrastination Risk: <span class="text-green-600 dark:text-green-400">LOW</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="absolute -right-16 -bottom-16 size-64 bg-primary/5 rounded-full blur-3xl"></div>
+                        </div>
+                    </section>
+                    <section class="bg-white dark:bg-slate-900 p-8 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm">
+                        <h4 class="text-xl font-bold mb-8">Personal Information</h4>
+                        <form class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Full Name</label>
+                                <input
+                                    class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
+                                    readonly="" type="text" value="Alex Johnson" />
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Email
+                                    Address</label>
+                                <input
+                                    class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
+                                    readonly="" type="email" value="alex.j@university.edu" />
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">University</label>
+                                <input
+                                    class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
+                                    readonly="" type="text" value="Stanford Institute of Technology" />
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Major</label>
+                                <input
+                                    class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
+                                    readonly="" type="text" value="Computer Science &amp; AI" />
+                            </div>
+                            <div class="space-y-2 md:col-span-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Academic
+                                    Bio</label>
+                                <textarea
+                                    class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
+                                    readonly=""
+                                    rows="3">Passionate about machine learning and its application in educational psychology. Focuses on leveraging predictive analytics to optimize study schedules.</textarea>
+                            </div>
+                        </form>
+                    </section>
+                    <footer class="pt-8 text-center text-[#617289] text-xs">
+                        © 2026 ProActive Academic AI Prediction Platform. All rights reserved.
+                    </footer>
+{% endblock %}
+
+
+<!-- <!DOCTYPE html>
 <html class="light" lang="en">
 
 <head>
@@ -227,4 +344,4 @@
 
 </body>
 
-</html>
+</html> -->
