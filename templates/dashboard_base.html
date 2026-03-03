@@ -7,14 +7,8 @@
     <header
         class="flex h-16 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark px-6 py-3 shrink-0 z-10">
         <div class="flex items-center gap-3">
-            <div class="size-8 text-primary">
-                <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                    <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z"
-                        fill-rule="evenodd"></path>
-                </svg>
-            </div>
-            <h2 class="text-xl font-bold leading-tight tracking-tight">ProActive</h2>
-        </div>
+         <a href="{{ url_for('student_dashboard') }}"> <h2 class="text-xl font-bold leading-tight tracking-tight">ProActive</h2>
+        </div></a>
         <div class="flex items-center gap-6">
             <div class="hidden md:flex flex-col items-end">
                 {# current_user is passed from every authenticated route #}
@@ -84,11 +78,6 @@
                     <p class="text-sm font-medium">Profile</p>
                 </a>
                 {% endif %}
-                <a href="#"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-                    <span class="material-symbols-outlined text-[24px]">help</span>
-                    <p class="text-sm font-medium">Help Center</p>
-                </a>
             </div>
         </aside>
 

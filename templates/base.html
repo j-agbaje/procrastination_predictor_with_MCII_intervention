@@ -38,6 +38,7 @@
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
     </style>
+     <!-- for the mcii page scollbar to show  -->
     {% block extra_head %}{% endblock %}
 </head>
 
@@ -57,7 +58,8 @@
     </div>
     {% endif %}
 
-    {% block body %}{% endblock %}
+     {% block body %}{% endblock %}  
+     <!-- block body is defined in the child templates -->
 
     {% block extra_scripts %}{% endblock %}
 </body>

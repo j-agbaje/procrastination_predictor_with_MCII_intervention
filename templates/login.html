@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block title %}ProActive Login{% endblock %}
+<!-- ProActive Login page title -->
+{% block title %}ProActive Login{% endblock %} 
+
 
 {% block body %}
 <div class="flex min-h-screen w-full">
@@ -23,18 +25,18 @@
         <div class="w-full max-w-[440px]">
             <div class="flex flex-col mb-10">
                 <div class="flex items-center gap-3 mb-8">
-                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                            <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z"
+                    <!-- <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white">
+                        <!-- <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"> -->
+                            <!-- <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z"
                                 fill-rule="evenodd"></path>
                         </svg>
-                    </div>
+                    </div> --> 
                     <h2 class="text-2xl font-bold tracking-tight">ProActive</h2>
                 </div>
                 <h3 class="text-3xl font-bold mb-2">Sign in to your account</h3>
                 <p class="text-[#617289]">Welcome back! Please enter your details.</p>
             </div>
-
+            <!-- display error message if error is set -->
             {# Server-side error message — set by FastAPI before rendering #}
             {% if error %}
             <div class="mb-5 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
@@ -42,7 +44,7 @@
             </div>
             {% endif %}
 
-            {# Pure HTML form POST — no JavaScript needed #}
+            {# Pure HTML form POST #}
             <form action="/auth/login" method="post" class="flex flex-col gap-5">
                 <div class="flex flex-col gap-2">
                     <label class="text-sm font-semibold">Email Address</label>
