@@ -1,0 +1,123 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Student Detail | ProActive{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-6xl">
+
+    {# SECTION 1 — Student header #}
+    <div class="flex items-center justify-between mb-6">
+        <a href="/admin/dashboard" class="text-sm text-primary hover:underline">&larr; Back to Dashboard</a>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mb-6">
+        <div class="flex items-center justify-between gap-4">
+            <h1 class="text-2xl font-bold">
+                {{ student.full_name if student.full_name else student.email }}
+            </h1>
+            {% if student.current_risk_level == 'high' %}
+            <span
+                class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
+                High risk
+            </span>
+            {% elif student.current_risk_level == 'medium' %}
+            <span
+                class="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
+                Medium risk
+            </span>
+            {% else %}
+            <span
+                class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
+                Low risk
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    {# SECTION 2 — Latest prediction #}
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mb-4">
+        <h2 class="text-lg font-bold mb-2">Latest Prediction</h2>
+        {% if latest_prediction %}
+        <p class="text-sm text-gray-700 dark:text-gray-200">
+            Risk: <span class="font-semibold">{{ latest_prediction.risk_level | title }}</span>
+            &middot;
+            Confidence:
+            <span class="font-semibold">{{ (latest_prediction.confidence_score * 100) | int }}%</span>
+            &middot;
+            Date:
+            <span class="font-semibold">
+                {{ latest_prediction.prediction_date.strftime('%b %d, %Y') }}
+            </span>
+        </p>
+        {% else %}
+        <p class="text-sm text-gray-500">No predictions yet.</p>
+        {% endif %}
+    </div>
+
+    {# SECTION 3 — Task summary (inline) #}
+    <div class="mb-4 text-sm text-gray-600 dark:text-gray-300">
+        {{ task_stats.total }} total &middot;
+        {{ task_stats.completed }} completed &middot;
+        {{ task_stats.overdue }} overdue
+    </div>
+
+    {# SECTION 4 — Recent tasks table (max 5) #}
+    <div
+        class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-800">
+            <h2 class="text-sm font-bold">Recent Tasks</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 dark:bg-gray-800/60 text-gray-500 uppercase tracking-wide">
+                        <th class="px-4 py-2">Title</th>
+                        <th class="px-4 py-2">Due date</th>
+                        <th class="px-4 py-2">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    {% for task in tasks[:5] %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition">
+                        <td class="px-4 py-2 text-[13px] font-medium">
+                            {{ task.title }}
+                        </td>
+                        <td class="px-4 py-2">
+                            {{ task.due_date.strftime('%b %d, %Y %I:%M %p') }}
+                        </td>
+                        <td class="px-4 py-2">
+                            {% if task.status == 'completed' %}
+                            <span
+                                class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase">
+                                Completed
+                            </span>
+                            {% elif task.status == 'overdue' %}
+                            <span
+                                class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase">
+                                Overdue
+                            </span>
+                            {% elif task.status == 'in_progress' %}
+                            <span
+                                class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase">
+                                In progress
+                            </span>
+                            {% else %}
+                            <span
+                                class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-[10px] font-bold uppercase">
+                                Pending
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="px-4 py-6 text-center text-gray-400 text-xs">
+                            No tasks yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

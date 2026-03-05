@@ -3,7 +3,7 @@ ProActive - FastAPI Application
 Server-side rendering with Jinja2 + session-based auth.
 """
 
-from fastapi import FastAPI, Request, Depends, Form, HTTPException, status
+from fastapi import FastAPI, Request, Depends, Form, HTTPException, status, UploadFile, File
 from fastapi.templating import Jinja2Templates # serve templates to the client
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware  
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from sqlalchemy import create_engine, Column, Integer, String, or_, Float, DateTime, Enum, Date, JSON, Text, Boolean, DECIMAL, TIMESTAMP
+from sqlalchemy import create_engine, Column, Integer, String, or_, Float, DateTime, Enum, Date, JSON, Text, Boolean, DECIMAL, TIMESTAMP, func
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
@@ -25,6 +25,11 @@ import secrets
 import hashlib
 import json
 import pickle
+import random
+import uuid
+
+from anthropic import Anthropic
+from apscheduler.schedulers.background import BackgroundScheduler
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
@@ -53,10 +58,13 @@ SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base = declarative_base()
 
 
-ANTROPIC_API_KEY = os.environ.get("ANTROPIC_API_KEY")
-if not ANTROPIC_API_KEY:
-    raise ValueError("ANTROPIC_API_KEY is not set")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+if not ANTHROPIC_API_KEY:
+    raise ValueError("ANTHROPIC_API_KEY is not set")
 
+anthropic_client = Anthropic(api_key=ANTHROPIC_API_KEY)
+
+scheduler = BackgroundScheduler(timezone="UTC")
 
 
 # ── ORM Models 
@@ -66,7 +74,7 @@ class Student(Base):
     __tablename__ = "Students"
     student_id         = Column(Integer, primary_key=True, autoincrement=True)
     email              = Column(String(255), unique=True, nullable=False)
-    full_name   = Column(String(100), nullable=True)
+    full_name         = Column(String(100), nullable=True)
     password_hash      = Column(String(255), nullable=False)
     enrollment_date    = Column(Date, nullable=False)
     current_risk_level = Column(Enum('low', 'medium', 'high'), default='low')
@@ -75,6 +83,9 @@ class Student(Base):
     days_active        = Column(Integer, default=0)
     # days_active determines which model to use: <7 closed bundles → 3window, 7+ → 7window
     created_at         = Column(TIMESTAMP, default=datetime.now)
+    phone              = Column(String(20), nullable=True)
+    profile_pic        = Column(String(255), nullable=True)
+    bio                = Column(Text, nullable=True)
 
 class Admin(Base):
     __tablename__ = "Admins"
@@ -225,6 +236,187 @@ def require_admin(request: Request) -> dict:
     if user["role"] != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access only")
     return user
+
+
+# ── Bundle utilities and inference helper 
+
+
+def create_initial_bundle(student_id: int, db: Session) -> Optional[WeeklyBundle]:
+    """
+    Create or return the current week's open WeeklyBundle row for a student.
+    Ensures idempotency so repeated calls in the same week do not duplicate bundles.
+    """
+    today = date.today()
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
+    week_number = today.isocalendar().week
+
+    existing = (
+        db.query(WeeklyBundle)
+        .filter(
+            WeeklyBundle.student_id == student_id,
+            WeeklyBundle.week_number == week_number,
+        )
+        .first()
+    )
+    if existing:
+        return existing
+
+    bundle = WeeklyBundle(
+        student_id=student_id,
+        week_number=week_number,
+        start_date=start_of_week,
+        end_date=end_of_week,
+        tasks_total=0,
+        tasks_completed=0,
+        tasks_late=0,
+        completion_rate=0.0,
+        submitted_late=0,
+        is_closed=0,
+    )
+
+    try:
+        db.add(bundle)
+        db.commit()
+        db.refresh(bundle)
+        return bundle
+    except Exception as exc:
+        db.rollback()
+        print(f"[bundles] Failed to create initial bundle for student {student_id}: {exc}")
+        return None
+
+
+def collate_weekly_bundles(db: Session) -> None:
+    """
+    Close the current open bundle for each student, compute snapshot metrics, and
+    provision the next week's bundle. Intended for use by a Sunday night scheduler.
+    """
+    students = db.query(Student).all()
+
+    for student in students:
+        try:
+            open_bundle = (
+                db.query(WeeklyBundle)
+                .filter(
+                    WeeklyBundle.student_id == student.student_id,
+                    WeeklyBundle.is_closed == 0,
+                )
+                .order_by(WeeklyBundle.week_number.desc())
+                .first()
+            )
+            if not open_bundle:
+                continue
+
+            start_dt = datetime.combine(open_bundle.start_date, datetime.min.time())
+            end_dt = datetime.combine(open_bundle.end_date, datetime.max.time())
+
+            tasks = (
+                db.query(Task)
+                .filter(
+                    Task.student_id == student.student_id,
+                    Task.due_date >= start_dt,
+                    Task.due_date <= end_dt,
+                )
+                .all()
+            )
+
+            tasks_total = len(tasks)
+            tasks_completed = sum(1 for t in tasks if t.status == "completed")
+            tasks_late = sum(
+                1
+                for t in tasks
+                if t.status == "overdue"
+                or (t.completed_at is not None and t.completed_at > t.due_date)
+            )
+            completion_rate = (tasks_completed / tasks_total) if tasks_total > 0 else 0.0
+            submitted_late = 1 if tasks_late > 0 else 0
+
+            open_bundle.tasks_total = tasks_total
+            open_bundle.tasks_completed = tasks_completed
+            open_bundle.tasks_late = tasks_late
+            open_bundle.completion_rate = float(completion_rate)
+            open_bundle.submitted_late = submitted_late
+            open_bundle.is_closed = 1
+            open_bundle.closed_at = datetime.now()
+
+            next_monday = open_bundle.start_date + timedelta(days=7)
+            next_sunday = next_monday + timedelta(days=6)
+            next_week_number = next_monday.isocalendar().week
+
+            existing_next = (
+                db.query(WeeklyBundle)
+                .filter(
+                    WeeklyBundle.student_id == student.student_id,
+                    WeeklyBundle.week_number == next_week_number,
+                )
+                .first()
+            )
+            if not existing_next:
+                next_bundle = WeeklyBundle(
+                    student_id=student.student_id,
+                    week_number=next_week_number,
+                    start_date=next_monday,
+                    end_date=next_sunday,
+                    tasks_total=0,
+                    tasks_completed=0,
+                    tasks_late=0,
+                    completion_rate=0.0,
+                    submitted_late=0,
+                    is_closed=0,
+                )
+                db.add(next_bundle)
+
+            db.commit()
+            print(f"[bundles] Collated bundle {open_bundle.bundle_id} for student {student.student_id}")
+        except Exception as exc:
+            db.rollback()
+            print(f"[bundles] Failed to collate bundles for student {student.student_id}: {exc}")
+
+
+def assign_tasks_to_bundles(db: Session) -> None:
+    """
+    Attach tasks without a bundle_id to the correct WeeklyBundle based on due_date.
+    Commits in small batches for efficiency and safety.
+    """
+    pending_tasks = (
+        db.query(Task)
+        .filter(Task.bundle_id.is_(None))
+        .order_by(Task.due_date.asc())
+        .all()
+    )
+
+    batch_size = 50
+    counter = 0
+
+    for task in pending_tasks:
+        try:
+            task_date = task.due_date.date()
+            bundle = (
+                db.query(WeeklyBundle)
+                .filter(
+                    WeeklyBundle.student_id == task.student_id,
+                    WeeklyBundle.start_date <= task_date,
+                    WeeklyBundle.end_date >= task_date,
+                )
+                .order_by(WeeklyBundle.week_number.desc())
+                .first()
+            )
+            if bundle:
+                task.bundle_id = bundle.bundle_id
+                counter += 1
+
+            if counter and counter % batch_size == 0:
+                db.commit()
+        except Exception as exc:
+            db.rollback()
+            print(f"[bundles] Failed assigning task {task.task_id} to bundle: {exc}")
+
+    if counter % batch_size != 0:
+        try:
+            db.commit()
+        except Exception as exc:
+            db.rollback()
+            print(f"[bundles] Failed final commit while assigning tasks to bundles: {exc}")
 
 
 # ── Inference helper 
@@ -400,6 +592,124 @@ def compute_prediction(student: Student, db: Session) -> Optional[dict]:
     }
 
 
+def generate_mcii_tip(risk_level: str, confidence_score: float) -> str:
+    """
+    Generate a concise MCII (Mental Contrasting and Implementation Intentions) tip using Claude
+    for a given procrastination risk level and confidence score.
+    """
+    normalized_risk = (risk_level or "").lower()
+    safe_confidence = max(0.0, min(float(confidence_score or 0.0), 1.0))
+
+    base_prompt = (
+        f"Generate a concise MCII tip under 100 words for a student "
+        f"with {normalized_risk or 'unknown'} procrastination risk "
+        f"(confidence: {safe_confidence:.2f}). "
+        "Use the Mental Contrasting and Implementation Intentions framework."
+    )
+
+    low_risk_variants = [
+        base_prompt
+        + " Focus on positive reinforcement, maintaining momentum, and acknowledging recent wins. "
+        "Keep the tone warm and encouraging, under 80 words.",
+        base_prompt
+        + " Emphasize how staying consistent this week will protect their current low-risk status. "
+        "Highlight a clear if-then plan for keeping their good habits, under 80 words.",
+        base_prompt
+        + " Celebrate that the upcoming weekly bundle deadline looks manageable and encourage one small "
+        "implementation intention that locks in their current study rhythm, under 80 words.",
+    ]
+
+    medium_risk_variants = [
+        base_prompt
+        + " Format the response exactly as:\n"
+        "Goal: [specific academic goal linked to this week's bundle deadline].\n"
+        "Obstacle: [concrete obstacle based on typical procrastination patterns].\n"
+        "Plan: If [specific trigger situation before the deadline], then I will [precise study action].\n"
+        "Be specific and mention that the bundle deadline is approaching soon. Stay under 120 words.",
+        base_prompt
+        + " The response must follow this structure:\n"
+        "Goal: [clear goal tied to tasks due by the end of the current week].\n"
+        "Obstacle: [realistic internal or external barrier, like phone distraction or fatigue].\n"
+        "Plan: If [time or context near the deadline], then I will [focused behavior that moves one task forward].\n"
+        "Keep it concrete, deadline-aware, and under 120 words.",
+        base_prompt
+        + " Use MCII to help the student close the gap before this week's bundle deadline. "
+        "Write:\nGoal: ...\nObstacle: ...\nPlan: If ... then I will ....\n"
+        "Refer explicitly to the remaining days before the deadline and keep it under 120 words.",
+        base_prompt
+        + " Assume the student still has several tasks due by Sunday. "
+        "Structure the tip as Goal / Obstacle / Plan, with the plan being an if-then action they can execute "
+        "today or tomorrow before the bundle closes. Under 120 words.",
+    ]
+
+    high_risk_variants = [
+        base_prompt
+        + " Write in an urgent but supportive tone. "
+        "Assume many tasks are still unfinished and the bundle deadline is very close. "
+        "Include a clear if-then implementation intention that can be acted on immediately, and stay under 150 words.",
+        base_prompt
+        + " Emphasize that time is almost up for this week's bundle and several tasks remain. "
+        "Direct the student to pick one high-impact task and create a sharp if-then plan to start within the next hour. "
+        "Keep it structured, concrete, and under 150 words.",
+        base_prompt
+        + " Treat this as a high-urgency situation. "
+        "Highlight the cost of not acting before the weekly deadline, then provide one specific if-then plan "
+        "for tackling the most overdue or risky task. Under 150 words.",
+        base_prompt
+        + " Assume the student has been postponing work until the last minute. "
+        "Be direct: mention the urgent deadline, the number of tasks likely remaining, and give a firm if-then rule "
+        "they can follow tonight to reduce risk. Under 150 words.",
+    ]
+
+    if normalized_risk == "low":
+        prompt = random.choice(low_risk_variants)
+    elif normalized_risk == "medium":
+        prompt = random.choice(medium_risk_variants)
+    elif normalized_risk == "high":
+        prompt = random.choice(high_risk_variants)
+    else:
+        prompt = base_prompt + " Provide a balanced, supportive MCII tip suitable for an unknown risk level."
+
+    try:
+        response = anthropic_client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=150,
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+        )
+        if response and getattr(response, "content", None):
+            first_block = response.content[0]
+            text = getattr(first_block, "text", None) or getattr(first_block, "content", None)
+            if isinstance(text, str) and text.strip():
+                return text.strip()
+    except Exception:
+        pass
+
+    if normalized_risk == "low":
+        return (
+            "You are on a strong path this week. Picture how it will feel to submit everything on time, "
+            "then commit: if I start to drift or scroll my phone during my planned study block, "
+            "then I will pause, take a breath, and return to the next small step on my task list."
+        )
+    if normalized_risk == "medium":
+        return (
+            "Goal: Finish this week’s key tasks before the bundle deadline.\n"
+            "Obstacle: I tend to delay starting when studying feels overwhelming.\n"
+            "Plan: If it is the next available 30-minute window today, then I will open my planner, pick one task "
+            "due soonest, and work on it without checking my phone until the timer ends."
+        )
+    return (
+        "Goal: Submit as many remaining tasks as possible before this week’s deadline.\n"
+        "Obstacle: I keep putting tasks off until it feels too late to start.\n"
+        "Plan: If it is the next hour, then I will choose the single most urgent task, silence notifications, "
+        "and work on it in a focused 25-minute block, followed by a 5-minute break."
+    )
+
+
 # ── FastAPI App 
 
 app = FastAPI(title="ProActive")
@@ -512,6 +822,138 @@ async def profile_page(
     })
 
 
+@app.post("/student/profile/update")
+async def update_profile(
+    request: Request,
+    full_name: str = Form(...),
+    bio: str = Form(""),
+    profile_pic: Optional[UploadFile] = File(None),
+    current_user: dict = Depends(require_student),
+    db: Session = Depends(get_db),
+):
+    """
+    Handle profile updates for the logged-in student, including name, bio, and
+    optional profile picture upload with validation and safe database commit.
+    """
+    student = (
+        db.query(Student)
+        .filter(Student.student_id == current_user["user_id"])
+        .first()
+    )
+
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student record not found for profile update",
+        )
+
+    name_clean = (full_name or "").strip()
+    bio_clean = (bio or "").strip()
+    error_message: Optional[str] = None
+
+    if len(name_clean) < 2 or len(name_clean) > 100:
+        error_message = "Full name must be between 2 and 100 characters."
+    elif len(bio_clean) > 500:
+        error_message = "Bio must be at most 500 characters."
+
+    image_path: Optional[str] = None
+    new_file_written = False
+
+    if not error_message and profile_pic and profile_pic.filename:
+        allowed_types = {
+            "image/jpeg": ".jpg",
+            "image/png": ".png",
+            "image/webp": ".webp",
+        }
+        if profile_pic.content_type not in allowed_types:
+            error_message = "Profile picture must be a JPG, PNG, or WEBP image."
+        else:
+            data = await profile_pic.read()
+            if len(data) > 2 * 1024 * 1024:
+                error_message = "Profile picture must be under 2MB."
+            else:
+                ext = allowed_types[profile_pic.content_type]
+                upload_dir = STATIC_DIR / "uploads" / "profile_pics"
+                upload_dir.mkdir(parents=True, exist_ok=True)
+                filename = f"{student.student_id}_{uuid.uuid4().hex[:8]}{ext}"
+                file_path = upload_dir / filename
+                with open(file_path, "wb") as f:
+                    f.write(data)
+                image_path = f"/static/uploads/profile_pics/{filename}"
+                new_file_written = True
+
+    if error_message:
+        completed_count = db.query(Task).filter(
+            Task.student_id == current_user["user_id"],
+            Task.status == "completed",
+        ).count()
+        latest_prediction = (
+            db.query(Prediction)
+            .filter(Prediction.student_id == current_user["user_id"])
+            .order_by(Prediction.prediction_date.desc())
+            .first()
+        )
+        return templates.TemplateResponse(
+            "student_profile.html",
+            {
+                "request": request,
+                "current_user": current_user,
+                "student": student,
+                "completed_count": completed_count,
+                "prediction": latest_prediction,
+                "error": error_message,
+            },
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    old_profile_pic = student.profile_pic
+    student.full_name = name_clean
+    student.bio = bio_clean
+    if image_path:
+        student.profile_pic = image_path
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        completed_count = db.query(Task).filter(
+            Task.student_id == current_user["user_id"],
+            Task.status == "completed",
+        ).count()
+        latest_prediction = (
+            db.query(Prediction)
+            .filter(Prediction.student_id == current_user["user_id"])
+            .order_by(Prediction.prediction_date.desc())
+            .first()
+        )
+        return templates.TemplateResponse(
+            "student_profile.html",
+            {
+                "request": request,
+                "current_user": current_user,
+                "student": student,
+                "completed_count": completed_count,
+                "prediction": latest_prediction,
+                "error": "Could not update profile. Please try again.",
+            },
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    if image_path and old_profile_pic:
+        try:
+            old_name = os.path.basename(old_profile_pic)
+            old_path = STATIC_DIR / "uploads" / "profile_pics" / old_name
+            if old_path.exists():
+                old_path.unlink()
+        except Exception:
+            pass
+
+    return RedirectResponse(
+        url="/student/profile",
+        status_code=status.HTTP_303_SEE_OTHER,
+    )
+
+
 @app.get("/student/mcii", response_class=HTMLResponse)
 async def mcii_page(
     request: Request,
@@ -605,6 +1047,97 @@ async def admin_dashboard(
     })
 
 
+@app.get("/admin/students/{student_id}", response_class=HTMLResponse)
+async def admin_student_detail(
+    student_id: int,
+    request: Request,
+    current_user: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    Render a detailed view for a single student including predictions, tasks, bundles,
+    latest MCII intervention, and high-level task statistics for admin review.
+    """
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+
+    if not student:
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "status_code": status.HTTP_404_NOT_FOUND,
+                "title": status.HTTP_404_NOT_FOUND,
+                "detail": "Student not found",
+            },
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    predictions = (
+        db.query(Prediction)
+        .filter(Prediction.student_id == student_id)
+        .order_by(Prediction.prediction_date.desc())
+        .limit(14)
+        .all()
+    )
+
+    tasks = (
+        db.query(Task)
+        .filter(Task.student_id == student_id)
+        .order_by(Task.due_date.desc())
+        .limit(10)
+        .all()
+    )
+
+    bundles = (
+        db.query(WeeklyBundle)
+        .filter(WeeklyBundle.student_id == student_id)
+        .order_by(WeeklyBundle.week_number.desc())
+        .all()
+    )
+
+    latest_intervention = (
+        db.query(MCIIIntervention)
+        .filter(MCIIIntervention.student_id == student_id)
+        .order_by(MCIIIntervention.delivery_time.desc())
+        .first()
+    )
+
+    total_tasks = db.query(Task).filter(Task.student_id == student_id).count()
+    completed_tasks = (
+        db.query(Task)
+        .filter(Task.student_id == student_id, Task.status == "completed")
+        .count()
+    )
+    overdue_tasks = (
+        db.query(Task)
+        .filter(Task.student_id == student_id, Task.status == "overdue")
+        .count()
+    )
+
+    task_stats = {
+        "total": total_tasks,
+        "completed": completed_tasks,
+        "overdue": overdue_tasks,
+    }
+
+    latest_prediction = predictions[0] if predictions else None
+
+    return templates.TemplateResponse(
+        "admin_student_detail.html",
+        {
+            "request": request,
+            "current_user": current_user,
+            "student": student,
+            "predictions": predictions,
+            "tasks": tasks,
+            "bundles": bundles,
+            "latest_intervention": latest_intervention,
+            "task_stats": task_stats,
+            "latest_prediction": latest_prediction,
+        },
+    )
+
+
 # ── Auth Form Handlers 
 
 @app.post("/auth/login")
@@ -671,6 +1204,8 @@ async def handle_signup(
     db.add(student)
     db.commit()
     db.refresh(student)
+
+    create_initial_bundle(student.student_id, db)
 
     request.session["user"] = {
         "user_id": student.student_id,
@@ -823,6 +1358,94 @@ async def generate_prediction(
         "model_used":       result["model_used"],
         "features_used":    result["features_json"],
     }
+
+
+@app.get("/student/mcii/tip")
+async def get_mcii_tip(
+    request: Request,
+    current_user: dict = Depends(require_student),
+    db: Session = Depends(get_db),
+):
+    """
+    Return a personalized MCII tip for the logged-in student based on today's prediction.
+    Reuses any intervention already delivered today, otherwise generates, stores, and returns a new one.
+    """
+    try:
+        today = date.today()
+
+        existing = (
+            db.query(MCIIIntervention)
+            .filter(
+                MCIIIntervention.student_id == current_user["user_id"],
+                func.date(MCIIIntervention.delivery_time) == today,
+            )
+            .order_by(MCIIIntervention.delivery_time.desc())
+            .first()
+        )
+
+        if existing:
+            prediction = (
+                db.query(Prediction)
+                .filter(Prediction.prediction_id == existing.prediction_id)
+                .first()
+            )
+            if prediction:
+                return {
+                    "tip": existing.prompt_text,
+                    "risk_level": prediction.risk_level,
+                    "confidence": float(prediction.confidence_score),
+                }
+            return {
+                "tip": existing.prompt_text,
+                "risk_level": "unknown",
+                "confidence": 0.0,
+            }
+
+        latest_prediction = (
+            db.query(Prediction)
+            .filter(Prediction.student_id == current_user["user_id"])
+            .order_by(Prediction.prediction_date.desc())
+            .first()
+        )
+
+        if not latest_prediction:
+            return {
+                "tip": (
+                    "We are still building your profile. "
+                    "Add tasks to your weekly bundle and check back tomorrow for a personalized strategy."
+                ),
+                "risk_level": "unknown",
+                "confidence": 0.0,
+            }
+
+        tip_text = generate_mcii_tip(
+            risk_level=latest_prediction.risk_level,
+            confidence_score=float(latest_prediction.confidence_score),
+        )
+
+        try:
+            intervention = MCIIIntervention(
+                prediction_id=latest_prediction.prediction_id,
+                student_id=current_user["user_id"],
+                prompt_text=tip_text,
+            )
+            db.add(intervention)
+            db.commit()
+        except Exception:
+            db.rollback()
+
+        return {
+            "tip": tip_text,
+            "risk_level": latest_prediction.risk_level,
+            "confidence": float(latest_prediction.confidence_score),
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not generate MCII tip at this time.",
+        )
 
 
 # ── Health Check 

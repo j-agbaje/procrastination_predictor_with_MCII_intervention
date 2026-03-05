@@ -71,6 +71,27 @@
                     </div>
                 </div>
             </div>
+
+            {# MCII Tip Card — populated via JSON endpoint #}
+            <div class="mt-6 flex flex-col overflow-hidden rounded-xl border border-blue-100 bg-white shadow-sm">
+                <div class="flex flex-col gap-3 p-6">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold">Today's MCII Tip</h3>
+                        <span id="mcii-risk-badge"
+                            class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                            Loading...
+                        </span>
+                    </div>
+                    <p id="mcii-tip-text" class="text-sm leading-relaxed text-gray-700">
+                        Fetching a personalized strategy based on your current procrastination risk...
+                    </p>
+                    <a href="/student/mcii"
+                        class="mt-4 inline-flex w-fit items-center gap-1 text-xs font-semibold text-primary hover:text-blue-700 transition">
+                        <span class="material-symbols-outlined text-sm">forum</span>
+                        <span>Open full MCII chat</span>
+                    </a>
+                </div>
+            </div>
         </div>
 
         <div class="lg:col-span-4 flex flex-col gap-6">
@@ -118,4 +139,19 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    fetch('/student/mcii/tip')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('mcii-tip-text').textContent = data.tip;
+            document.getElementById('mcii-risk-badge').textContent = data.risk_level;
+        })
+        .catch(() => {
+            document.getElementById('mcii-tip-text').textContent =
+                'Could not load tip. Try refreshing.';
+        });
+</script>
 {% endblock %}
