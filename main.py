@@ -30,6 +30,10 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
 import uvicorn
 from schemas import SignupRequest, LoginRequest, TaskCreate, TaskUpdate, ProfileUpdate, MCIIMessage, PredictionRequest
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 # ── Directory configuration 
@@ -41,10 +45,18 @@ MODEL_DIR   = BASE_DIR / "models" / "saved_models"
 templates = Jinja2Templates(directory=TEMPLATE_DIR) # templates directory
 
 # ── Database 
-DATABASE_URL = "mysql+pymysql://root:astroball197310@localhost/ProActive_db"
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is not set")
 engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=3600, echo=False)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base = declarative_base()
+
+
+ANTROPIC_API_KEY = os.environ.get("ANTROPIC_API_KEY")
+if not ANTROPIC_API_KEY:
+    raise ValueError("ANTROPIC_API_KEY is not set")
+
 
 
 # ── ORM Models 

@@ -156,3 +156,12 @@ CREATE TABLE MCIIInterventions (
 
     INDEX idx_mcii_student_time (student_id, delivery_time)
 );
+
+-- Add full_name if not already done
+ALTER TABLE Students 
+ADD COLUMN IF NOT EXISTS full_name VARCHAR(100) NULL AFTER email;
+
+-- Add phone, profile_pic, bio for profile editing
+ALTER TABLE Students ADD COLUMN phone VARCHAR(20) NULL;
+ALTER TABLE Students ADD COLUMN profile_pic VARCHAR(255) NULL;
+ALTER TABLE Students ADD COLUMN bio TEXT NULL;
