@@ -7,8 +7,7 @@
         class="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-slate-900 p-6 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm">
         <div class="flex flex-col md:flex-row items-center gap-6">
             <div class="size-24 rounded-2xl bg-slate-100 bg-cover bg-center border-4 border-white dark:border-slate-800 shadow-lg"
-                style="background-image: url('{% if student.profile_pic %}{{ student.profile_pic }}{% else %}https://ui-avatars.com/api/?name={{ (student.full_name or current_user.email) | urlencode }}&background=136dec&color=fff{% endif %}')">
-            </div>
+                style="background-image: url('{{ student.image_path }}')"></div>
             <div class="text-center md:text-left">
                 <h3 class="text-2xl font-bold">
                     {{ student.full_name or current_user.email }}
@@ -97,6 +96,16 @@
         © 2026 ProActive Academic AI Prediction Platform. All rights reserved.
     </footer>
 </div>
+{% block extra_scripts %}
+<script>
+    document.getElementById('edit-btn').addEventListener('click', function () {
+        document.querySelectorAll('input[readonly], textarea[readonly]').forEach(el => el.removeAttribute('readonly'));
+        document.querySelector('input[type="file"]').removeAttribute('disabled');
+        document.getElementById('save-btn').style.display = 'block';
+        this.style.display = 'none';
+    });
+</script>
+{% endblock %}
 {% endblock %}
 <!-- <!DOCTYPE html>
 <html class="light" lang="en">

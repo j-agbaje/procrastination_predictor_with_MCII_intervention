@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 
 
 # ── Auth 
@@ -37,6 +37,7 @@ class TaskUpdate(BaseModel):
 class ProfileUpdate(BaseModel):
     full_name: str      = Field(..., min_length=2, max_length=100)
     email:     EmailStr
+    bio:       Optional[str] = Field(None, max_length=500)
 
 
 
@@ -56,11 +57,10 @@ class PredictionResponse(BaseModel):
     risk_level: str
     confidence_score: float
     model_used: str
-    prediction_date: datetime
+    prediction_date: date
     features_json: Optional[dict]
 
-    model_config = {"from_attributes": True}
-
+    model_config = {'protected_namespaces': (), 'from_attributes': True}
 
 class BundleResponse(BaseModel):
     bundle_id: int

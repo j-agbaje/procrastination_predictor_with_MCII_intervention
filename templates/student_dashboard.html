@@ -143,6 +143,17 @@
 
 {% block extra_scripts %}
 <script>
+    // Only run prediction fetch once per load (not on the reload itself)
+    if (!sessionStorage.getItem('pred_refreshed')) {
+        sessionStorage.setItem('pred_refreshed', '1');
+        fetch('/api/predict/{{ current_user.user_id }}', { method: 'POST' })
+            .then(r => r.json())
+            .then(() => location.reload())
+            .catch(() => { });
+    } else {
+        sessionStorage.removeItem('pred_refreshed');
+    }
+
     fetch('/student/mcii/tip')
         .then(r => r.json())
         .then(data => {
@@ -150,8 +161,7 @@
             document.getElementById('mcii-risk-badge').textContent = data.risk_level;
         })
         .catch(() => {
-            document.getElementById('mcii-tip-text').textContent =
-                'Could not load tip. Try refreshing.';
+            document.getElementById('mcii-tip-text').textContent = 'Could not load tip. Try refreshing.';
         });
 </script>
 {% endblock %}

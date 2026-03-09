@@ -15,8 +15,7 @@
                 <span class="text-sm font-semibold">{{ current_user.email }}</span>
                 <span class="text-xs text-gray-500">{{ current_user.role | capitalize }}</span>
             </div>
-            {# Logout is a simple POST form — no JS needed #}
-            <form action="/auth/logout" method="post">
+            {# Logout is a simple POST form — no JS needed #}            <form action="/auth/logout" method="post">
                 <button type="submit"
                     class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold transition hover:bg-blue-700">
                     Logout
@@ -33,8 +32,7 @@
             <div class="flex flex-col gap-4">
                 <div class="flex items-center gap-3 px-3 py-4">
                     <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12 border-2 border-primary/20"
-                        style='background-image: url("https://ui-avatars.com/api/?name={{ current_user.email }}&background=136dec&color=fff");'>
-                    </div>
+                        style="background-image: url('{% if student and student.profile_pic %}{{ student.image_path }}{% else %}https://ui-avatars.com/api/?name={{ current_user.email }}&background=136dec&color=fff{% endif %}');"></div>
                     <div class="flex flex-col">
                         <h1 class="text-base font-medium leading-none">My Progress</h1>
                         <p class="text-gray-500 text-xs mt-1">

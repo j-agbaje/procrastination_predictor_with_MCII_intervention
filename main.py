@@ -11,11 +11,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware  
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from sqlalchemy import create_engine, Column, Integer, String, or_, Float, DateTime, Enum, Date, JSON, Text, Boolean, DECIMAL, TIMESTAMP, func
-from sqlalchemy.dialects.mysql import TINYINT
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-
+from sqlalchemy import func, or_
+# create_engine, Column, Integer, String, or_, Float, DateTime, Enum, Date, JSON, Text, Boolean, DECIMAL, TIMESTAMP,
+# from sqlalchemy.dialects.mysql import TINYINT
+# from sqlalchemy.ext.declarative import declarative_base
+# from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
 from datetime import datetime, date, timedelta
 from pathlib import Path
 from typing import Optional, Dict, Any
@@ -34,12 +35,14 @@ from apscheduler.schedulers.background import BackgroundScheduler
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
 import uvicorn
-from schemas import SignupRequest, LoginRequest, TaskCreate, TaskUpdate, ProfileUpdate, MCIIMessage, PredictionRequest
+from schemas import SignupRequest, LoginRequest, TaskCreate, TaskUpdate, ProfileUpdate, MCIIMessage, PredictionRequest, PredictionResponse
 from dotenv import load_dotenv
 
 
 load_dotenv()
-
+from database import Base, engine, SessionLocal, get_db
+from models import Student, Admin, Task, WeeklyBundle, Prediction, MCIIIntervention, BehavioralLog, Survey
+import tensorflow as tf
 
 # ── Directory configuration 
 BASE_DIR    = Path(__file__).resolve().parent
@@ -49,15 +52,6 @@ MODEL_DIR   = BASE_DIR / "models" / "saved_models"
 
 templates = Jinja2Templates(directory=TEMPLATE_DIR) # templates directory
 
-# ── Database 
-DATABASE_URL = os.environ.get("DATABASE_URL")
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL is not set")
-engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=3600, echo=False)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-Base = declarative_base()
-
-
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 if not ANTHROPIC_API_KEY:
     raise ValueError("ANTHROPIC_API_KEY is not set")
@@ -66,106 +60,25 @@ anthropic_client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
 scheduler = BackgroundScheduler(timezone="UTC")
 
+# attention
+class BahdanauAttention(tf.keras.layers.Layer):
+    def __init__(self, units, **kwargs):
+        super(BahdanauAttention, self).__init__(**kwargs)
+        self.units = units
+        self.W1 = tf.keras.layers.Dense(units, use_bias=False)
+        self.V = tf.keras.layers.Dense(1, use_bias=False)
 
-# ── ORM Models 
-# Kept in sync with schema.sql — if you change the schema, update these too.
+    def call(self, encoder_output):
+        score = self.V(tf.nn.tanh(self.W1(encoder_output)))
+        attention_weights = tf.nn.softmax(score, axis=1)
+        context_vector = attention_weights * encoder_output
+        context_vector = tf.reduce_sum(context_vector, axis=1)
+        return context_vector, attention_weights
 
-class Student(Base):
-    __tablename__ = "Students"
-    student_id         = Column(Integer, primary_key=True, autoincrement=True)
-    email              = Column(String(255), unique=True, nullable=False)
-    full_name         = Column(String(100), nullable=True)
-    password_hash      = Column(String(255), nullable=False)
-    enrollment_date    = Column(Date, nullable=False)
-    current_risk_level = Column(Enum('low', 'medium', 'high'), default='low')
-    prior_profile      = Column(Enum('early', 'mixed', 'lastminute'), default='mixed')
-    # prior_profile drives cold-start synthetic bundle rows
-    days_active        = Column(Integer, default=0)
-    # days_active determines which model to use: <7 closed bundles → 3window, 7+ → 7window
-    created_at         = Column(TIMESTAMP, default=datetime.now)
-    phone              = Column(String(20), nullable=True)
-    profile_pic        = Column(String(255), nullable=True)
-    bio                = Column(Text, nullable=True)
-
-class Admin(Base):
-    __tablename__ = "Admins"
-    admin_id     = Column(Integer, primary_key=True, autoincrement=True)
-    email        = Column(String(255), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    department   = Column(String(100))
-    access_level = Column(Integer, default=1)
-    created_at   = Column(TIMESTAMP, default=datetime.now)
-
-class WeeklyBundle(Base):
-    __tablename__ = "WeeklyBundles"
-    bundle_id       = Column(Integer, primary_key=True, autoincrement=True)
-    student_id      = Column(Integer, nullable=False)
-    week_number     = Column(Integer, nullable=False)
-    start_date      = Column(Date, nullable=False)       # Monday
-    end_date        = Column(Date, nullable=False)       # Sunday (deadline)
-    tasks_total     = Column(Integer, default=0)
-    tasks_completed = Column(Integer, default=0)
-    tasks_late      = Column(Integer, default=0)
-    completion_rate = Column(DECIMAL(4, 3), default=0.000)
-    submitted_late  = Column(TINYINT, default=0)        # 1 if completion_rate < 1.0 at close
-    is_closed       = Column(TINYINT, default=0)        # 1 after Sunday snapshot
-    closed_at       = Column(TIMESTAMP, nullable=True)
-    created_at      = Column(TIMESTAMP, default=datetime.now)
-
-class Task(Base):
-    __tablename__ = "Tasks"
-    task_id      = Column(Integer, primary_key=True, autoincrement=True)
-    student_id   = Column(Integer, nullable=False)
-    bundle_id    = Column(Integer, nullable=True)       # NULL until assigned to a bundle
-    title        = Column(String(200), nullable=False)
-    description  = Column(Text)
-    due_date     = Column(DateTime, nullable=False)
-    created_at   = Column(TIMESTAMP, default=datetime.now)
-    completed_at = Column(TIMESTAMP, nullable=True)
-    status       = Column(Enum('pending', 'in_progress', 'completed', 'overdue'), default='pending')
-
-class Prediction(Base):
-    __tablename__ = "Predictions"
-    prediction_id          = Column(Integer, primary_key=True, autoincrement=True)
-    student_id             = Column(Integer, nullable=False)
-    bundle_id              = Column(Integer, nullable=True)
-    prediction_date        = Column(Date, nullable=False)
-    model_used             = Column(Enum('3window', '7window'), nullable=False)
-    risk_level             = Column(Enum('low', 'medium', 'high'), nullable=False)
-    confidence_score       = Column(DECIMAL(3, 2), nullable=False)
-    attention_weights_json = Column(JSON, nullable=True)
-    features_json          = Column(JSON, nullable=True)
-
-class Survey(Base):
-    __tablename__ = "Surveys"
-    survey_id       = Column(Integer, primary_key=True, autoincrement=True)
-    student_id      = Column(Integer, unique=True, nullable=False)
-    responses_json  = Column(JSON, nullable=False)
-    completion_date = Column(TIMESTAMP, default=datetime.now)
-
-class BehavioralLog(Base):
-    __tablename__ = "BehavioralLogs"
-    log_id           = Column(Integer, primary_key=True, autoincrement=True)
-    student_id       = Column(Integer, nullable=False)
-    login_time       = Column(TIMESTAMP, nullable=False)
-    logout_time      = Column(TIMESTAMP, nullable=True)
-    pages_visited    = Column(Integer, default=0)
-    session_duration = Column(Integer, nullable=True)
-
-class MCIIIntervention(Base):
-    __tablename__ = "MCIIInterventions"
-    intervention_id = Column(Integer, primary_key=True, autoincrement=True)
-    prediction_id   = Column(Integer, nullable=False)
-    student_id      = Column(Integer, nullable=False)
-    prompt_text     = Column(Text, nullable=False)
-    delivery_time   = Column(TIMESTAMP, default=datetime.now)
-    user_response   = Column(Text, nullable=True)
-    was_helpful     = Column(Boolean, nullable=True)
-
-
-# ── ML Model Loading 
-# Both models are loaded at startup. Which one runs depends on closed bundle count.
-# No label_encoder — risk thresholds are applied directly to the sigmoid output.
+    def get_config(self):
+        config = super().get_config()
+        config.update({"units": self.units})
+        return config
 
 model_3window = None
 model_7window = None
@@ -175,7 +88,10 @@ prior_profiles: Dict[str, Any] = {}
 feature_config: Dict[str, Any] = {}
 
 try:
-    custom_objects = {'Orthogonal': tf.keras.initializers.Orthogonal}
+    custom_objects = {
+    'Orthogonal': tf.keras.initializers.Orthogonal,
+    'BahdanauAttention': BahdanauAttention
+    }
 
     model_3window = tf.keras.models.load_model(
         MODEL_DIR / "bilstm_3window.h5",
@@ -196,7 +112,7 @@ try:
     with open(MODEL_DIR / "feature_config.json", "r") as f:
         feature_config = json.load(f)
 
-    print("✓ All ML artifacts loaded")
+    print(" All ML artifacts loaded")
 
 except Exception as e:
     print(f"Could not load ML artifacts: {e}")
@@ -206,12 +122,12 @@ except Exception as e:
 
 # ── Utilities 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
@@ -436,6 +352,7 @@ def _bundle_to_features(bundle: WeeklyBundle, today: date) -> list[float]:
         0.0,   # overdue_count — filled in by caller as running total
     ]
 
+# pipeline for model inference 
 def compute_prediction(student: Student, db: Session) -> Optional[dict]:
     """
     Full inference pipeline as described in the pipeline doc.
@@ -454,7 +371,7 @@ def compute_prediction(student: Student, db: Session) -> Optional[dict]:
         .all()
     )
     num_closed = len(closed_bundles)
-
+    # Use normal 
     if num_closed >= 7 and model_7window:
         model      = model_7window
         scaler     = scaler_7window
@@ -721,12 +638,15 @@ app.add_middleware(
 )
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# upload_dir = BASE_DIR / "media" / "profile_pics"
+app.mount("/media", StaticFiles(directory=BASE_DIR / "media"), name="media")
 
 
     
 
 # ── Page Routes 
 
+# login page 
 @app.get("/", response_class=HTMLResponse)
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request): # request: Request required by Jinja 2 template rendering
@@ -737,11 +657,12 @@ async def login_page(request: Request): # request: Request required by Jinja 2 t
     return templates.TemplateResponse("login.html", {"request": request})
 
 
+#  signup page 
 @app.get("/signup", response_class=HTMLResponse)
 async def signup_page(request: Request):
     return templates.TemplateResponse("signup.html", {"request": request})
 
-
+# student_dashboard
 @app.get("/student/dashboard", response_class=HTMLResponse)
 async def student_dashboard(
     request: Request,
@@ -775,6 +696,7 @@ async def student_dashboard(
     })
 
 
+# student task manager 
 @app.get("/student/tasks", response_class=HTMLResponse)
 async def tasks_page(
     request: Request,
@@ -782,6 +704,7 @@ async def tasks_page(
     current_user: dict = Depends(require_student),
     db: Session = Depends(get_db)
 ):
+    student = db.query(Student).filter(Student.student_id == current_user["user_id"]).first()
     query = db.query(Task).filter(Task.student_id == current_user["user_id"])
     if filter_status:
         query = query.filter(Task.status == filter_status)
@@ -790,11 +713,12 @@ async def tasks_page(
     return templates.TemplateResponse("tasks.html", {
         "request":       request,
         "current_user":  current_user,
+        "student":       student,
         "tasks":         tasks,
         "filter_status": filter_status,
     })
 
-
+# student profile page 
 @app.get("/student/profile", response_class=HTMLResponse)
 async def profile_page(
     request: Request,
@@ -821,7 +745,7 @@ async def profile_page(
         "prediction":       latest_prediction,
     })
 
-
+# update student profile page 
 @app.post("/student/profile/update")
 async def update_profile(
     request: Request,
@@ -873,13 +797,13 @@ async def update_profile(
                 error_message = "Profile picture must be under 2MB."
             else:
                 ext = allowed_types[profile_pic.content_type]
-                upload_dir = STATIC_DIR / "uploads" / "profile_pics"
+                upload_dir = BASE_DIR / "media" / "profile_pics"
                 upload_dir.mkdir(parents=True, exist_ok=True)
                 filename = f"{student.student_id}_{uuid.uuid4().hex[:8]}{ext}"
                 file_path = upload_dir / filename
                 with open(file_path, "wb") as f:
                     f.write(data)
-                image_path = f"/static/uploads/profile_pics/{filename}"
+                image_path = filename
                 new_file_written = True
 
     if error_message:
@@ -954,12 +878,15 @@ async def update_profile(
     )
 
 
+#  mcii chat endpoint 
 @app.get("/student/mcii", response_class=HTMLResponse)
 async def mcii_page(
     request: Request,
     current_user: dict = Depends(require_student),
     db: Session = Depends(get_db)
 ):
+
+    student = db.query(Student).filter(Student.student_id == current_user["user_id"]).first()
     # Load recent MCII interventions for this student to pre-populate chat history
     interventions = (
         db.query(MCIIIntervention)
@@ -969,9 +896,10 @@ async def mcii_page(
         .all()
     )
     return templates.TemplateResponse("mcii_chat.html", {
-        "request":       request,
-        "current_user":  current_user,
-        "interventions": interventions,
+        "request":request,
+        "current_user":current_user,
+        "student":student,
+        "interventions":interventions,
     })
 
 
@@ -1030,20 +958,20 @@ async def admin_dashboard(
         students_with_predictions.append({"student": s, "prediction": pred})
 
     return templates.TemplateResponse("admin_dashboard.html", {
-        "request":      request,
+        "request":request,
         "current_user": current_user,
         "stats": {
-            "total_students":   total_students,
-            "high_risk_alerts": high_risk_count,
-            "mcii_engagement":  mcii_engagement,
-            "avg_progress":     avg_progress,
+            "total_students":total_students,
+            "high_risk_alerts":high_risk_count,
+            "mcii_engagement":mcii_engagement,
+            "avg_progress":avg_progress,
         },
-        "students":      students_with_predictions,
-        "page":          page,
-        "total_pages":   total_pages,
+        "students": students_with_predictions,
+        "page": page,
+        "total_pages": total_pages,
         "total_filtered": total_filtered,
-        "risk_filter":   risk_filter,
-        "search":        search,
+        "risk_filter":risk_filter,
+        "search":search,
     })
 
 
@@ -1243,12 +1171,12 @@ async def handle_logout(
 
 @app.post("/student/tasks/create")
 async def create_task(
-    request:     Request,
-    title:       str      = Form(...),
-    due_date:    datetime = Form(...),
-    description: str      = Form(default=""),
-    current_user: dict    = Depends(require_student),
-    db: Session           = Depends(get_db)
+    request:Request,
+    title:str= Form(...),
+    due_date:datetime = Form(...),
+    description: str = Form(default=""),
+    current_user: dict = Depends(require_student),
+    db: Session = Depends(get_db)
 ):
     # Find the active (open) bundle for this student to assign the task to
     active_bundle = (
@@ -1257,12 +1185,12 @@ async def create_task(
         .first()
     )
     task = Task(
-        student_id  = current_user["user_id"],
-        bundle_id   = active_bundle.bundle_id if active_bundle else None,
-        title       = title,
+        student_id = current_user["user_id"],
+        bundle_id  = active_bundle.bundle_id if active_bundle else None,
+        title = title,
         description = description,
-        due_date    = due_date,
-        status      = "pending"
+        due_date= due_date,
+        status = "pending"
     )
     db.add(task)
     db.commit()
@@ -1274,19 +1202,19 @@ async def toggle_task(
     task_id:     int,
     request:     Request,
     current_user: dict  = Depends(require_student),
-    db: Session         = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     task = db.query(Task).filter(
-        Task.task_id   == task_id,
+        Task.task_id == task_id,
         Task.student_id == current_user["user_id"]
     ).first()
 
     if task:
         if task.status == "completed":
-            task.status       = "pending"
+            task.status = "pending"
             task.completed_at = None
         else:
-            task.status       = "completed"
+            task.status = "completed"
             task.completed_at = datetime.now()
         db.commit()
 
@@ -1299,7 +1227,7 @@ async def delete_task(
     task_id:     int,
     request:     Request,
     current_user: dict  = Depends(require_student),
-    db: Session         = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     task = db.query(Task).filter(
         Task.task_id    == task_id,
@@ -1314,7 +1242,8 @@ async def delete_task(
 # ── Prediction API 
 # Kept as a JSON endpoint because it's compute-heavy and called on-demand.
 
-@app.post("/api/predict/{student_id}")
+# prediction endpoint 
+@app.post("/api/predict/{student_id}", response_model=PredictionResponse)
 async def generate_prediction(
     student_id:   int,
     request:      Request,
@@ -1351,13 +1280,15 @@ async def generate_prediction(
     db.commit()
     db.refresh(pred)
 
-    return {
-        "prediction_id":    pred.prediction_id,
-        "risk_level":       result["risk_level"],
-        "confidence_score": result["confidence_score"],
-        "model_used":       result["model_used"],
-        "features_used":    result["features_json"],
-    }
+    return PredictionResponse.model_validate(pred)
+
+    # return {
+    #     "prediction_id":    pred.prediction_id,
+    #     "risk_level":       result["risk_level"],
+    #     "confidence_score": result["confidence_score"],
+    #     "model_used":       result["model_used"],
+    #     "features_used":    result["features_json"],
+    # }
 
 
 @app.get("/student/mcii/tip")
