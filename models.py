@@ -31,6 +31,8 @@ class Student(Base):
     @property
     def image_path(self) -> str:
         if self.profile_pic:
+            if self.profile_pic.startswith("/") or self.profile_pic.startswith("http"):
+                return self.profile_pic
             return f"/media/profile_pics/{self.profile_pic}"
         return "https://ui-avatars.com/api/?name=User&background=136dec&color=fff"
 
@@ -112,15 +114,13 @@ class BehavioralLog(Base):
 class MCIIIntervention(Base):
     __tablename__ = "MCIIInterventions"
     intervention_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    prediction_id:Mapped[int] = mapped_column(Integer, ForeignKey("Predictions.prediction_id"), index=True)
+    prediction_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("Predictions.prediction_id"), index=True, nullable=True)
     student_id: Mapped[int] = mapped_column(Integer, ForeignKey("Students.student_id"),index=True)
     prompt_text: Mapped[str] = mapped_column(Text)
     delivery_time: Mapped[datetime | None]= mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
     user_response: Mapped[str | None] = mapped_column(Text, nullable=True)
     was_helpful: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
-
-
 
 
     

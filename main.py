@@ -1,8 +1,3 @@
-"""
-ProActive - FastAPI Application
-Server-side rendering with Jinja2 + session-based auth.
-"""
-
 from fastapi import FastAPI, Request, Depends, Form, HTTPException, status, UploadFile, File
 from fastapi.templating import Jinja2Templates # serve templates to the client
 from fastapi.staticfiles import StaticFiles
@@ -10,12 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware  
 from starlette.exceptions import HTTPException as StarletteHTTPException
-
 from sqlalchemy import func, or_
-# create_engine, Column, Integer, String, or_, Float, DateTime, Enum, Date, JSON, Text, Boolean, DECIMAL, TIMESTAMP,
-# from sqlalchemy.dialects.mysql import TINYINT
-# from sqlalchemy.ext.declarative import declarative_base
-# from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.orm import Session
 from datetime import datetime, date, timedelta
 from pathlib import Path
@@ -28,6 +18,7 @@ import json
 import pickle
 import random
 import uuid
+import logging
 
 from anthropic import Anthropic
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -43,6 +34,8 @@ load_dotenv()
 from database import Base, engine, SessionLocal, get_db
 from models import Student, Admin, Task, WeeklyBundle, Prediction, MCIIIntervention, BehavioralLog, Survey
 import tensorflow as tf
+from datetime import datetime, timedelta
+
 
 # ── Directory configuration 
 BASE_DIR    = Path(__file__).resolve().parent
@@ -51,6 +44,7 @@ STATIC_DIR  = BASE_DIR / "static"
 MODEL_DIR   = BASE_DIR / "models" / "saved_models"
 
 templates = Jinja2Templates(directory=TEMPLATE_DIR) # templates directory
+logger = logging.getLogger(__name__)
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 if not ANTHROPIC_API_KEY:
@@ -118,16 +112,6 @@ except Exception as e:
     print(f"Could not load ML artifacts: {e}")
 
 
-
-
-# ── Utilities 
-
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
 
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
@@ -198,7 +182,7 @@ def create_initial_bundle(student_id: int, db: Session) -> Optional[WeeklyBundle
         return bundle
     except Exception as exc:
         db.rollback()
-        print(f"[bundles] Failed to create initial bundle for student {student_id}: {exc}")
+        logger.exception("Failed to create initial bundle for student %s: %s", student_id, exc)
         return None
 
 
@@ -283,10 +267,10 @@ def collate_weekly_bundles(db: Session) -> None:
                 db.add(next_bundle)
 
             db.commit()
-            print(f"[bundles] Collated bundle {open_bundle.bundle_id} for student {student.student_id}")
+            logger.info("Collated bundle %s for student %s", open_bundle.bundle_id, student.student_id)
         except Exception as exc:
             db.rollback()
-            print(f"[bundles] Failed to collate bundles for student {student.student_id}: {exc}")
+            logger.exception("Failed to collate bundles for student %s: %s", student.student_id, exc)
 
 
 def assign_tasks_to_bundles(db: Session) -> None:
@@ -325,14 +309,15 @@ def assign_tasks_to_bundles(db: Session) -> None:
                 db.commit()
         except Exception as exc:
             db.rollback()
-            print(f"[bundles] Failed assigning task {task.task_id} to bundle: {exc}")
+            logger.exception("Failed assigning task %s to bundle: %s", task.task_id, exc)
 
     if counter % batch_size != 0:
         try:
             db.commit()
         except Exception as exc:
             db.rollback()
-            print(f"[bundles] Failed final commit while assigning tasks to bundles: {exc}")
+            logger.exception("Failed final commit while assigning tasks to bundles: %s", exc)
+    logger.info("Assigned %s tasks to bundles", counter)
 
 
 # ── Inference helper 
@@ -627,6 +612,93 @@ def generate_mcii_tip(risk_level: str, confidence_score: float) -> str:
     )
 
 
+# ── Scheduler jobs (use SessionLocal inside jobs, not get_db)
+
+def nightly_inference() -> None:
+    """Run prediction for all students; create Prediction rows and optional MCII interventions. Idempotent per student per day."""
+    db = SessionLocal()
+    try:
+        today = date.today()
+        students = db.query(Student).all()
+        logger.info("nightly_inference started, total students=%s", len(students))
+        written = 0
+        errors = 0
+        for student in students:
+            try:
+                existing = (
+                    db.query(Prediction)
+                    .filter(
+                        Prediction.student_id == student.student_id,
+                        Prediction.prediction_date == today,
+                    )
+                    .first()
+                )
+                if existing:
+                    continue
+                result = compute_prediction(student, db)
+                if result is None:
+                    logger.warning("compute_prediction returned None for student_id=%s", student.student_id)
+                    continue
+                pred = Prediction(
+                    student_id=student.student_id,
+                    bundle_id=result.get("bundle_id"),
+                    prediction_date=today,
+                    model_used=result["model_used"],
+                    risk_level=result["risk_level"],
+                    confidence_score=result["confidence_score"],
+                    attention_weights_json=None,
+                    features_json=result.get("features_json"),
+                )
+                db.add(pred)
+                db.flush()
+                student.current_risk_level = result["risk_level"]
+                student.days_active = (student.days_active or 0) + 1
+                if result["risk_level"] == "high":
+                    cutoff = datetime.now() - timedelta(hours=24)
+                    recent_mcii = (
+                        db.query(MCIIIntervention)
+                        .filter(
+                            MCIIIntervention.student_id == student.student_id,
+                            MCIIIntervention.delivery_time >= cutoff,
+                        )
+                        .first()
+                    )
+                    if not recent_mcii:
+                        tip_text = generate_mcii_tip(result["risk_level"], result["confidence_score"])
+                        intervention = MCIIIntervention(
+                            prediction_id=pred.prediction_id,
+                            student_id=student.student_id,
+                            prompt_text=tip_text,
+                            delivery_time=datetime.now(),
+                        )
+                        db.add(intervention)
+                db.commit()
+                written += 1
+            except Exception as exc:
+                db.rollback()
+                errors += 1
+                logger.exception("nightly_inference failed for student_id=%s: %s", student.student_id, exc)
+        logger.info("nightly_inference finished, predictions_written=%s, errors=%s", written, errors)
+    finally:
+        db.close()
+
+
+def _run_collate_weekly_bundles() -> None:
+    db = SessionLocal()
+    try:
+        collate_weekly_bundles(db)
+    finally:
+        db.close()
+
+
+def _run_assign_tasks_to_bundles() -> None:
+    db = SessionLocal()
+    try:
+        assign_tasks_to_bundles(db)
+    finally:
+        db.close()
+
+
 # ── FastAPI App 
 
 app = FastAPI(title="ProActive")
@@ -642,7 +714,30 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/media", StaticFiles(directory=BASE_DIR / "media"), name="media")
 
 
-    
+@app.on_event("startup")
+def start_scheduler():
+    scheduler.add_job(_run_collate_weekly_bundles, "cron", day_of_week="sun", hour=23, minute=59, timezone="UTC")
+    scheduler.add_job(nightly_inference, "cron", hour=0, minute=5, timezone="UTC")
+    scheduler.add_job(_run_assign_tasks_to_bundles, "cron", hour=0, minute=10, timezone="UTC")
+    scheduler.start()
+
+
+@app.on_event("shutdown")
+def stop_scheduler():
+    scheduler.shutdown()
+
+
+@app.post("/admin/run-scheduler")
+def run_scheduler_manual(
+    current_user: dict = Depends(require_admin),
+):
+    """Manual trigger for nightly inference (admin only, for testing)."""
+    nightly_inference()
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Scheduler run complete", "timestamp": datetime.now().isoformat()},
+    )
+
 
 # ── Page Routes 
 
@@ -691,6 +786,7 @@ async def student_dashboard(
         "request":          request,
         "current_user":     current_user,
         "student":          student,
+        "student_id":       current_user["user_id"],
         "tasks":            tasks,
         "prediction":       latest_prediction,
     })
@@ -737,12 +833,16 @@ async def profile_page(
         .first()
     )
 
+    error = request.session.pop("flash_error", None)
+    success = request.session.pop("flash_success", None)
     return templates.TemplateResponse("student_profile.html", {
         "request":          request,
         "current_user":     current_user,
         "student":          student,
         "completed_count":  completed_count,
         "prediction":       latest_prediction,
+        "error":            error,
+        "success":          success,
     })
 
 # update student profile page 
@@ -750,13 +850,14 @@ async def profile_page(
 async def update_profile(
     request: Request,
     full_name: str = Form(...),
+    phone: str = Form(""),
     bio: str = Form(""),
     profile_pic: Optional[UploadFile] = File(None),
     current_user: dict = Depends(require_student),
     db: Session = Depends(get_db),
 ):
     """
-    Handle profile updates for the logged-in student, including name, bio, and
+    Handle profile updates for the logged-in student, including name, phone, bio, and
     optional profile picture upload with validation and safe database commit.
     """
     student = (
@@ -772,16 +873,20 @@ async def update_profile(
         )
 
     name_clean = (full_name or "").strip()
+    phone_clean = (phone or "").strip()
     bio_clean = (bio or "").strip()
     error_message: Optional[str] = None
 
     if len(name_clean) < 2 or len(name_clean) > 100:
         error_message = "Full name must be between 2 and 100 characters."
+    elif len(phone_clean) > 20:
+        error_message = "Phone must be at most 20 characters."
+    elif phone_clean and not all(c in "0123456789 +-" for c in phone_clean):
+        error_message = "Phone may only contain digits, spaces, + and -."
     elif len(bio_clean) > 500:
         error_message = "Bio must be at most 500 characters."
 
     image_path: Optional[str] = None
-    new_file_written = False
 
     if not error_message and profile_pic and profile_pic.filename:
         allowed_types = {
@@ -803,8 +908,7 @@ async def update_profile(
                 file_path = upload_dir / filename
                 with open(file_path, "wb") as f:
                     f.write(data)
-                image_path = filename
-                new_file_written = True
+                image_path = f"/media/profile_pics/{filename}"
 
     if error_message:
         completed_count = db.query(Task).filter(
@@ -826,12 +930,17 @@ async def update_profile(
                 "completed_count": completed_count,
                 "prediction": latest_prediction,
                 "error": error_message,
+                "success": None,
+                "form_full_name": name_clean,
+                "form_phone": phone_clean,
+                "form_bio": bio_clean,
             },
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     old_profile_pic = student.profile_pic
     student.full_name = name_clean
+    student.phone = phone_clean if phone_clean else None
     student.bio = bio_clean
     if image_path:
         student.profile_pic = image_path
@@ -850,6 +959,8 @@ async def update_profile(
             .order_by(Prediction.prediction_date.desc())
             .first()
         )
+        error = request.session.pop("flash_error", None)
+        success = request.session.pop("flash_success", None)
         return templates.TemplateResponse(
             "student_profile.html",
             {
@@ -859,6 +970,7 @@ async def update_profile(
                 "completed_count": completed_count,
                 "prediction": latest_prediction,
                 "error": "Could not update profile. Please try again.",
+                "success": success,
             },
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -866,12 +978,13 @@ async def update_profile(
     if image_path and old_profile_pic:
         try:
             old_name = os.path.basename(old_profile_pic)
-            old_path = STATIC_DIR / "uploads" / "profile_pics" / old_name
+            old_path = BASE_DIR / "media" / "profile_pics" / old_name
             if old_path.exists():
                 old_path.unlink()
-        except Exception:
+        except FileNotFoundError:
             pass
 
+    request.session["flash_success"] = "Profile updated successfully"
     return RedirectResponse(
         url="/student/profile",
         status_code=status.HTTP_303_SEE_OTHER,
@@ -885,22 +998,262 @@ async def mcii_page(
     current_user: dict = Depends(require_student),
     db: Session = Depends(get_db)
 ):
-
     student = db.query(Student).filter(Student.student_id == current_user["user_id"]).first()
-    # Load recent MCII interventions for this student to pre-populate chat history
+    
     interventions = (
         db.query(MCIIIntervention)
         .filter(MCIIIntervention.student_id == current_user["user_id"])
-        .order_by(MCIIIntervention.delivery_time.desc())
-        .limit(10)
+        .order_by(MCIIIntervention.delivery_time.asc())
         .all()
     )
+
+    # cutoff = datetime.now() - timedelta(hours=48)
+    # recent_intervention = (
+    #     db.query(MCIIIntervention)
+    #     .filter(
+    #         MCIIIntervention.student_id == current_user["user_id"],
+    #         MCIIIntervention.delivery_time >= cutoff
+    #     )
+    #     .first()
+    # )
+    # is_fresh = recent_intervention is None
+
+    if student.current_risk_level == "high":
+        greeting = "Hey — I can see things are a bit intense right now. Let's talk about what's going on and build a plan together."
+    elif student.current_risk_level == "medium":
+        greeting = "Hey! You're doing okay but there's room to get ahead. What are you working on this week?"
+    else:
+        greeting = "Hey! You're in good shape right now — let's keep that momentum going. What's your focus this week?"
+
     return templates.TemplateResponse("mcii_chat.html", {
-        "request":request,
-        "current_user":current_user,
-        "student":student,
-        "interventions":interventions,
+        "request": request,
+        "current_user": current_user,
+        "student": student,
+        "interventions": interventions,
+        "greeting": greeting,
     })
+
+
+@app.post("/student/mcii/chat")
+async def mcii_chat(
+    message: MCIIMessage,
+    current_user: dict = Depends(require_student),
+    db: Session = Depends(get_db),
+):
+    if not message.message or not message.message.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Message cannot be empty")
+    
+    student_id = current_user["user_id"]
+
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+
+    latest_prediction = (
+        db.query(Prediction)
+        .filter(Prediction.student_id == student_id)
+        .order_by(Prediction.prediction_date.desc())
+        .first()
+    )
+    active_bundle = (
+        db.query(WeeklyBundle)
+        .filter(WeeklyBundle.student_id == student_id, WeeklyBundle.is_closed == 0)
+        .order_by(WeeklyBundle.week_number.desc())
+        .first()
+    )
+    tasks_remaining = (
+        (active_bundle.tasks_total - active_bundle.tasks_completed)
+        if active_bundle
+        else "unknown"
+    )
+    days_until_deadline = (
+        (active_bundle.end_date - date.today()).days
+        if active_bundle
+        else "unknown"
+    )
+    overdue_count = (
+        db.query(WeeklyBundle)
+        .filter(
+            WeeklyBundle.student_id == student_id,
+            WeeklyBundle.is_closed == 1,
+            WeeklyBundle.submitted_late == 1,
+        )
+        .count()
+    )
+    risk_level = latest_prediction.risk_level if latest_prediction else "unknown"
+    confidence_score = float(latest_prediction.confidence_score) if latest_prediction else 0.0
+
+    system_prompt = (
+        f"You are ProActive Coach — an AI academic coach and mental health-informed study companion for {student.full_name}.\n"
+        "You are warm, direct, and knowledgeable. You genuinely care about student success and wellbeing.\n\n"
+        "STUDENT CONTEXT:\n"
+        f"- Risk level: {risk_level} (confidence: {confidence_score})\n"
+        f"- Tasks remaining this week: {tasks_remaining}\n"
+        f"- Days until weekly deadline: {days_until_deadline}\n"
+        f"- Late bundles in history: {overdue_count}\n"
+        f"- Days active on platform: {student.days_active}\n"
+        f"- Prior procrastination profile: {student.prior_profile}\n\n"
+        "YOUR PURPOSE:\n"
+        "You are part of a research-backed intervention system exploring MCII (Mental Contrasting with "
+        "Implementation Intentions) as an alternative to in-person CBT for academic procrastination. "
+        "MCII is not optional — it is the core intervention you deliver. Every meaningful conversation "
+        "should work toward a Mental Contrast and an Implementation Intention. Make this feel natural, not forced.\n\n"
+        "YOUR PERSONALITY:\n"
+        "- You talk like a smart, supportive friend who knows a lot about productivity and student psychology\n"
+        "- You can be warm, funny, and casual when the moment calls for it\n"
+        "- You can be clinical, structured, and direct when the situation requires it\n"
+        "- You are comfortable sounding therapeutic — you are exploring this as an alternative to CBT\n"
+        "- What you avoid is sounding like you are reading from a script\n"
+        "- You listen before you coach — never jump to MCII before the student feels heard\n"
+        "- You give direct answers first, MCII layer second when a student asks a practical question\n\n"
+        "WHEN TO USE MCII:\n"
+        "- When a student mentions a goal, struggle, or deadline → guide them through Mental Contrasting "
+        "(visualize success, then name the obstacle) and build an Implementation Intention (if-then plan)\n"
+        "- When they ask for a study plan → give the plan first, then anchor it with if-then intentions\n"
+        "- When they are clearly procrastinating → acknowledge it, then apply MCII\n"
+        "- When they vent or are stressed → listen and validate first, then transition to MCII naturally\n"
+        "- Every session should end with or work toward a concrete if-then plan where possible\n\n"
+        "HANDLING OFF-TOPIC CONVERSATIONS:\n"
+        "- First time: engage briefly and genuinely with the off-topic thing, then redirect with light humour\n"
+        "- Second time: acknowledge you've been off track, be warmer but firmer in redirecting\n"
+        "- Third time and beyond: be firm and direct — no more engaging with the off-topic content, "
+        "redirect fully to their academic context. Still warm, never rude.\n"
+        "- Each redirect should feel natural and in-the-moment, not scripted\n\n"
+        "THINGS YOU NEVER DO:\n"
+        "- Never repeat your opening greeting if conversation history exists — pick up naturally\n"
+        "- Never apply MCII so rigidly that it kills the conversation flow\n"
+        "- Never ignore a casual question completely — engage briefly first\n"
+        "- Never make a student jump through hoops to get a direct answer\n"
+        "- Never say 'I need clarity' repeatedly — make a reasonable assumption and proceed\n"
+        "- Never be preachy\n\n"
+        "Keep responses under 200 words unless the student explicitly requests a detailed plan or "
+        "breakdown, in which case be as thorough as needed.\n"
+        "Do not be generic. Be direct and specific to this student's context."
+    )
+
+    # Load last 10 exchanges for conversation history
+    cutoff = datetime.now() - timedelta(hours=48)
+    history = (
+        db.query(MCIIIntervention)
+        .filter(
+            MCIIIntervention.student_id == student_id,
+            MCIIIntervention.delivery_time >= cutoff
+        )
+        .order_by(MCIIIntervention.intervention_id.desc())
+        .limit(15)
+        .all()
+    )
+    history.reverse()
+
+    # Build messages array with history
+    messages = []
+    for h in history:
+        messages.append({"role": "user", "content": h.prompt_text})
+        if h.user_response:
+            messages.append({"role": "assistant", "content": h.user_response})
+
+    # Add current message
+    messages.append({"role": "user", "content": message.message})
+
+    try:
+        response = anthropic_client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1000,
+            system=system_prompt,
+            messages=messages,
+        )
+        claude_reply = response.content[0].text
+    except Exception as exc:
+        logger.exception("MCII chat Claude API error: %s", exc)
+        err_name = type(exc).__name__
+        error_str = str(exc)
+        
+        if "RateLimit" in err_name:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="AI service temporarily unavailable. Please try again shortly.",
+            )
+        if "credit" in error_str.lower() or "billing" in error_str.lower() or "quota" in error_str.lower():
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="AI coach is currently unavailable. Please contact your administrator.",
+            )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI coach is temporarily unavailable. Please try again.",
+        )
+
+
+    intervention = MCIIIntervention(
+        prediction_id=latest_prediction.prediction_id if latest_prediction else None,
+        student_id=student_id,
+        prompt_text=message.message,
+        user_response=claude_reply,
+        delivery_time=datetime.now(),
+    )
+    db.add(intervention)
+    db.commit()
+    db.refresh(intervention)
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"response": claude_reply, "intervention_id": intervention.intervention_id},
+    )
+
+
+@app.get("/api/students/{student_id}/trend")
+def get_student_trend(
+    student_id: int,
+    current_user: dict = Depends(require_student),
+    db: Session = Depends(get_db),
+):
+    """Return last 14 predictions for trend chart; 403 if not own student."""
+    if current_user["user_id"] != student_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+    rows = (
+        db.query(Prediction)
+        .filter(Prediction.student_id == student_id)
+        .order_by(Prediction.prediction_date.asc())
+        .limit(14)
+        .all()
+    )
+    if len(rows) < 2:
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "labels": [],
+                "scores": [],
+                "risk_levels": [],
+                "trend": "insufficient_data",
+                "trend_pct": 0,
+            },
+        )
+    labels = [r.prediction_date.strftime("%b %d") for r in rows]
+    scores = [float(r.confidence_score) for r in rows]
+    risk_levels = [r.risk_level for r in rows]
+    n = len(scores)
+    if n >= 6:
+        recent_avg = sum(scores[-3:]) / 3
+        previous_avg = sum(scores[-6:-3]) / 3
+    else:
+        recent_avg = sum(scores[-2:]) / 2
+        previous_avg = sum(scores[:2]) / 2
+    diff = recent_avg - previous_avg
+    if diff > 0.1:
+        trend = "worsening"
+    elif diff < -0.1:
+        trend = "improving"
+    else:
+        trend = "stable"
+    trend_pct = round(abs(diff) * 100, 1)
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "labels": labels,
+            "scores": scores,
+            "risk_levels": risk_levels,
+            "trend": trend,
+            "trend_pct": trend_pct,
+        },
+    )
 
 
 @app.get("/admin/dashboard", response_class=HTMLResponse)
@@ -940,6 +1293,7 @@ async def admin_dashboard(
 )
 
     total_filtered = query.count()
+    flash_success = request.session.pop("flash_success", None)
     total_pages    = max(1, (total_filtered + per_page - 1) // per_page)
     page           = max(1, min(page, total_pages))
     offset         = (page - 1) * per_page
@@ -958,21 +1312,84 @@ async def admin_dashboard(
         students_with_predictions.append({"student": s, "prediction": pred})
 
     return templates.TemplateResponse("admin_dashboard.html", {
-        "request":request,
+        "request": request,
         "current_user": current_user,
         "stats": {
-            "total_students":total_students,
-            "high_risk_alerts":high_risk_count,
-            "mcii_engagement":mcii_engagement,
-            "avg_progress":avg_progress,
+            "total_students": total_students,
+            "high_risk_alerts": high_risk_count,
+            "mcii_engagement": mcii_engagement,
+            "avg_progress": avg_progress,
         },
         "students": students_with_predictions,
         "page": page,
         "total_pages": total_pages,
         "total_filtered": total_filtered,
-        "risk_filter":risk_filter,
-        "search":search,
+        "risk_filter": risk_filter,
+        "search": search,
+        "flash_success": flash_success,
     })
+
+
+@app.get("/admin/create-admin", response_class=HTMLResponse)
+async def admin_create_page(
+    request: Request,
+    current_user: dict = Depends(require_admin),
+):
+    """Render the create admin account form."""
+    return templates.TemplateResponse(
+        "admin_create.html",
+        {"request": request, "current_user": current_user, "error": None},
+    )
+
+
+@app.post("/admin/create-admin", response_class=HTMLResponse)
+async def admin_create_submit(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    department: str = Form("General"),
+    current_user: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Create a new admin account. Auth: require_admin."""
+    error = None
+    email_clean = (email or "").strip().lower()
+    department_clean = (department or "General").strip()[:100]
+    if len(email_clean) > 255:
+        error = "Email must be at most 255 characters."
+    elif "@" not in email_clean or "." not in email_clean.split("@")[-1]:
+        error = "Please enter a valid email address."
+    elif len(password) < 8:
+        error = "Password must be at least 8 characters."
+    if not error and db.query(Admin).filter(Admin.email == email_clean).first():
+        error = "An admin with this email already exists."
+    if error:
+        return templates.TemplateResponse(
+            "admin_create.html",
+            {"request": request, "current_user": current_user, "error": error},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        new_admin = Admin(
+            email=email_clean,
+            password_hash=hash_password(password),
+            department=department_clean or "General",
+        )
+        db.add(new_admin)
+        db.commit()
+        request.session["flash_success"] = f"Admin account created for {email_clean}"
+        return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    except Exception:
+        db.rollback()
+        return templates.TemplateResponse(
+            "admin_create.html",
+            {
+                "request": request,
+                "current_user": current_user,
+                "error": "Could not create account. Try again.",
+            },
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 @app.get("/admin/students/{student_id}", response_class=HTMLResponse)

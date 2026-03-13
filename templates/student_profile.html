@@ -6,8 +6,14 @@
     <section
         class="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-slate-900 p-6 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm">
         <div class="flex flex-col md:flex-row items-center gap-6">
+            {% if student.profile_pic %}
             <div class="size-24 rounded-2xl bg-slate-100 bg-cover bg-center border-4 border-white dark:border-slate-800 shadow-lg"
                 style="background-image: url('{{ student.image_path }}')"></div>
+            {% else %}
+            <div class="size-24 rounded-2xl bg-slate-100 bg-cover bg-center border-4 border-white dark:border-slate-800 shadow-lg"
+                style="background-image: url('https://ui-avatars.com/api/?name={{ (student.full_name or current_user.email) | urlencode }}&background=136dec&color=fff')">
+            </div>
+            {% endif %}
             <div class="text-center md:text-left">
                 <h3 class="text-2xl font-bold">
                     {{ student.full_name or current_user.email }}
@@ -20,14 +26,11 @@
                         class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400 text-xs font-semibold rounded">
                         Active Student
                     </span>
+                    <span class="text-xs text-gray-500">Risk: {{ prediction.risk_level | upper if prediction else 'N/A'
+                        }}</span>
                 </div>
             </div>
         </div>
-        <button id="edit-btn"
-            class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">edit</span>
-            Edit Profile
-        </button>
     </section>
 
     <section class="grid grid-cols-1 md:grid-cols-1 gap-6">
@@ -44,12 +47,16 @@
         </div>
     </section>
 
-    <section
-        class="bg-white dark:bg-slate-900 p-8 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm">
+    <section class="bg-white dark:bg-slate-900 p-8 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm">
         <h4 class="text-xl font-bold mb-8">Personal Information</h4>
 
+        {% if success %}
+        <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+            {{ success }}
+        </div>
+        {% endif %}
         {% if error %}
-        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700">
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
             {{ error }}
         </div>
         {% endif %}
@@ -60,33 +67,37 @@
                 <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Full Name</label>
                 <input
                     class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
-                    type="text" name="full_name" value="{{ student.full_name or '' }}" readonly />
+                    type="text" name="full_name"
+                    value="{{ form_full_name | default(student.full_name or '', true) }}" />
             </div>
             <div class="space-y-2">
-                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Email
-                    Address</label>
+                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Email Address</label>
                 <input
                     class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
                     readonly type="email" value="{{ current_user.email }}" />
             </div>
+            <div class="space-y-2">
+                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Phone</label>
+                <input
+                    class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
+                    type="text" name="phone" value="{{ form_phone | default(student.phone or '', true) }}"
+                    placeholder="Optional" />
+            </div>
             <div class="space-y-2 md:col-span-2">
-                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Academic
-                    Bio</label>
+                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Academic Bio</label>
                 <textarea
                     class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
-                    name="bio" rows="3" readonly>{{ student.bio or '' }}</textarea>
+                    name="bio" rows="3">{{ form_bio | default(student.bio or '', true) }}</textarea>
             </div>
             <div class="space-y-2 md:col-span-2">
-                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Profile
-                    Picture</label>
+                <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Profile Picture</label>
                 <input
                     class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-2 px-3 text-sm"
-                    type="file" name="profile_pic" accept="image/*" disabled />
+                    type="file" name="profile_pic" accept="image/jpeg,image/png,image/webp" />
             </div>
-            <div class="space-y-2 md:col-span-2 flex items-center gap-3">
-                <button type="submit" id="save-btn" style="display:none"
-                    class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-sm">
-                    Save Changes
+            <div class="space-y-2 md:col-span-2">
+                <button type="submit" class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-sm">
+                    Update Profile
                 </button>
             </div>
         </form>
@@ -97,243 +108,5 @@
     </footer>
 </div>
 {% block extra_scripts %}
-<script>
-    document.getElementById('edit-btn').addEventListener('click', function () {
-        document.querySelectorAll('input[readonly], textarea[readonly]').forEach(el => el.removeAttribute('readonly'));
-        document.querySelector('input[type="file"]').removeAttribute('disabled');
-        document.getElementById('save-btn').style.display = 'block';
-        this.style.display = 'none';
-    });
-</script>
 {% endblock %}
 {% endblock %}
-<!-- <!DOCTYPE html>
-<html class="light" lang="en">
-
-<head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Student Profile | ProActive</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap"
-        rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-        rel="stylesheet" />
-    <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#136dec",
-                        "background-light": "#f6f7f8",
-                        "background-dark": "#101822",
-                    },
-                    fontFamily: {
-                        "display": ["Lexend", "sans-serif"]
-                    },
-                    borderRadius: {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                },
-            },
-        }
-    </script>
-    <style type="text/tailwindcss">
-        body { font-family: 'Lexend', sans-serif; }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-    </style>
-</head>
-<script src="/js/auth.js"></script>
-
-<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white">
-    <div class="flex min-h-screen">
-        <aside
-            class="w-64 border-r border-[#dbe0e6] dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col fixed h-full z-20">
-            <div class="p-6 flex flex-col h-full">
-                <div class="flex items-center gap-3 mb-10">
-                    <div class="bg-primary size-10 rounded-lg flex items-center justify-center text-white">
-                        <span class="material-symbols-outlined fill-1">bolt</span>
-                    </div>
-                    <div class="flex flex-col">
-                        <h1
-                            class="text-[#111418] dark:text-white text-base font-bold leading-tight uppercase tracking-tight">
-                            ProActive</h1>
-                    </div>
-                </div>
-                <nav class="flex flex-col gap-1.5 flex-1">
-                    <a class="flex items-center gap-3 px-3 py-2.5 bg-primary/10 text-primary rounded-lg" href="/student/dashboard">
-                        <span class="material-symbols-outlined text-[22px]"
-                            style="font-variation-settings: 'FILL' 1">dashboard</span>
-                        <span class="text-sm font-semibold">Dashboard</span>
-                    </a>
-                    <a class="flex items-center gap-3 px-3 py-2.5 text-[#617289] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors group"
-                        href="/student/tasks">
-                        <span class="material-symbols-outlined text-[22px]">check_box</span>
-                        <span class="text-sm font-medium">Tasks</span>
-                    </a>
-                    <a class="flex items-center gap-3 px-3 py-2.5 text-[#617289] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors group"
-                        href="/student/mcii">
-                        <span class="material-symbols-outlined text-[22px]">forum</span>
-                        <span class="text-sm font-medium">MCII Chat</span>
-                    </a>
-                </nav>
-                <div class="mt-auto flex flex-col gap-1.5">
-                    <a class="flex items-center gap-3 px-3 py-2.5 text-[#617289] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors group"
-                        href="#">
-                        <span class="material-symbols-outlined text-[22px]">help</span>
-                        <span class="text-sm font-medium">Help Center</span>
-                    </a>
-                    <a class="flex items-center gap-3 px-3 py-2.5 text-[#617289] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors group"
-                        href="/student/profile">
-                        <span class="material-symbols-outlined text-[22px]">person</span>
-                        <span class="text-sm font-medium">Profile</span>
-                    </a>
-                </div>
-            </div>
-        </aside>
-        <div class="flex-1 ml-64 flex flex-col min-h-screen">
-            <header
-                class="w-full flex items-center justify-between px-8 py-4 bg-white dark:bg-slate-900 border-b border-[#dbe0e6] dark:border-slate-800 sticky top-0 z-10">
-                <div class="flex items-center gap-2">
-                    <h2 class="text-lg font-bold">Student Profile</h2>
-                </div>
-                <div class="flex items-center gap-6">
-                    <div class="text-right">
-                        <span class="text-sm font-bold text-[#111418] dark:text-white">ALEX JOHNSON | COMPUTER
-                            SCIENCE</span>
-                    </div>
-                    <button
-                        data-logout
-                        class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm">
-                        <span class="material-symbols-outlined text-lg">power_settings_new</span>
-                        <span>Logout</span>
-                    </button>
-                </div>
-            </header>
-            <main class="flex-1 p-8 max-w-6xl mx-auto w-full space-y-8">
-                <section
-                    class="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-slate-900 p-6 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm">
-                    <div class="flex flex-col md:flex-row items-center gap-6">
-                        <div class="size-24 rounded-2xl bg-slate-100 bg-cover bg-center border-4 border-white dark:border-slate-800 shadow-lg"
-                            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB9sJstCxngZGumVvcN9RCLziQdVPdSdfHSaR6hD3Pc3duchhP0TgGwWVA7cMlM-k6phidP-NpNwQFQwW27lEO9yAHcOJiBnkIhd0qUR6uBgeK6UneZant7IPln_pGMJJl6sxX7QVv4Bh5XkOnb098ehtwPTGNN5p6cnsYyzAUoxgSHGR1LiL-gaZiQ1cpP5iuU81wwZlc4tcS9duxAPuHwlYyDbQsfLBC7l9sBLQJecxd5h4IzavcUXTbEIhH6Wfgr7d3P7P2vcsUm')">
-                        </div>
-                        <div class="text-center md:text-left">
-                            <h3 class="text-2xl font-bold">Alex Johnson</h3>
-                            <p class="text-[#617289] dark:text-slate-400">Student ID: <span
-                                    class="font-mono text-primary font-semibold">STU-88421</span> | Major: Computer
-                                Science</p>
-                            <div class="flex flex-wrap justify-center md:justify-start gap-2 mt-2">
-                                <span
-                                    class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400 text-xs font-semibold rounded">Active
-                                    Student</span>
-                                <span
-                                    class="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 text-xs font-semibold rounded">Senior
-                                    Year</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">edit</span>
-                        Edit Profile
-                    </button>
-                </section>
-                <section class="grid grid-cols-1 md:grid-cols-1 gap-6">
-                    <div
-                        class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-[#dbe0e6] dark:border-slate-800 flex items-center gap-4">
-                        <div
-                            class="size-12 rounded-lg bg-green-50 dark:bg-green-950/20 flex items-center justify-center text-green-600">
-                            <span class="material-symbols-outlined text-3xl">task_alt</span>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-[#617289]">Tasks Finished</p>
-                            <p class="text-2xl font-bold">148</p>
-                        </div>
-                    </div>
-                </section>
-                <section>
-                    <div
-                        class="bg-gradient-to-br from-white to-blue-50 dark:from-slate-900 dark:to-slate-800 p-8 rounded-xl border border-primary/20 shadow-sm relative overflow-hidden">
-                        <div class="relative z-10 flex flex-col md:flex-row items-start gap-10">
-                            <div class="flex-1 space-y-4 text-left">
-                                <div class="flex items-center justify-start gap-2">
-                                    <span class="material-symbols-outlined text-primary">auto_awesome</span>
-                                    <h4 class="text-xl font-bold text-primary">AI Productivity Insights</h4>
-                                </div>
-                                <p class="text-lg font-medium leading-relaxed">
-                                    "You are most productive between <span class="text-primary font-bold">10 AM and 1
-                                        PM</span>."
-                                </p>
-                                <p class="text-sm text-[#617289] dark:text-slate-400">
-                                    AI Predictor shows a <span class="text-amber-600 font-semibold italic">15% delay
-                                        risk</span> for tasks assigned on Thursdays.
-                                    Focus on early starts for end-of-week assignments to maintain your streak.
-                                </p>
-                                <div class="pt-4">
-                                    <p
-                                        class="text-sm font-bold uppercase tracking-widest text-[#111418] dark:text-white">
-                                        Procrastination Risk: <span
-                                            class="text-green-600 dark:text-green-400">LOW</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="absolute -right-16 -bottom-16 size-64 bg-primary/5 rounded-full blur-3xl"></div>
-                    </div>
-                </section>
-                <section
-                    class="bg-white dark:bg-slate-900 p-8 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm">
-                    <h4 class="text-xl font-bold mb-8">Personal Information</h4>
-                    <form class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Full Name</label>
-                            <input
-                                class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
-                                readonly="" type="text" value="Alex Johnson" />
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Email
-                                Address</label>
-                            <input
-                                class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
-                                readonly="" type="email" value="alex.j@university.edu" />
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">University</label>
-                            <input
-                                class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
-                                readonly="" type="text" value="Stanford Institute of Technology" />
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Major</label>
-                            <input
-                                class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
-                                readonly="" type="text" value="Computer Science &amp; AI" />
-                        </div>
-                        <div class="space-y-2 md:col-span-2">
-                            <label class="text-xs font-bold uppercase tracking-wider text-[#617289]">Academic
-                                Bio</label>
-                            <textarea
-                                class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary py-3 px-4 font-medium"
-                                readonly=""
-                                rows="3">Passionate about machine learning and its application in educational psychology. Focuses on leveraging predictive analytics to optimize study schedules.</textarea>
-                        </div>
-                    </form>
-                </section>
-                <footer class="pt-8 text-center text-[#617289] text-xs">
-                    © 2024 ProActive Academic AI Prediction Platform. All rights reserved.
-                </footer>
-            </main>
-        </div>
-    </div>
-
-</body>
-
-</html> -->

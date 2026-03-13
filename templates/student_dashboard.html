@@ -1,6 +1,10 @@
 {% extends "dashboard_base.html" %}
 {% block title %}Dashboard | ProActive{% endblock %}
 
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="mx-auto max-w-6xl">
     <div class="mb-8">
@@ -136,6 +140,16 @@
                     View All Tasks
                 </a>
             </div>
+
+            {# Weekly Activity — risk trend graph #}
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h3 class="text-lg font-bold mb-3">Weekly Activity</h3>
+                <div id="trend-badge" class="text-sm font-bold mb-3"></div>
+                <canvas id="trendChart" height="120"></canvas>
+                <p id="trend-empty" class="text-sm text-gray-400 text-center py-8 hidden">
+                    Add tasks and complete them to see your risk trend.
+                </p>
+            </div>
         </div>
     </div>
 </div>
@@ -162,6 +176,47 @@
         })
         .catch(() => {
             document.getElementById('mcii-tip-text').textContent = 'Could not load tip. Try refreshing.';
+        });
+
+    fetch('/api/students/{{ student_id }}/trend')
+        .then(r => r.json())
+        .then(data => {
+            if (!data.labels.length) {
+                document.getElementById('trend-empty').classList.remove('hidden');
+                return;
+            }
+            const badge = document.getElementById('trend-badge');
+            const colors = { improving: '#16a34a', worsening: '#dc2626', stable: '#136dec' };
+            const arrows = { improving: '↑', worsening: '↓', stable: '→' };
+            const color = colors[data.trend] || '#136dec';
+            badge.textContent = data.trend !== 'insufficient_data'
+                ? arrows[data.trend] + ' ' + data.trend.charAt(0).toUpperCase() + data.trend.slice(1) + ' ' + data.trend_pct + '%'
+                : 'Insufficient data';
+            badge.style.color = color;
+
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.scores.map(function (s) { return Math.round(s * 100); }),
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { callback: function (v) { return v + '%'; } } }
+                    }
+                }
+            });
+        })
+        .catch(function () {
+            document.getElementById('trend-empty').classList.remove('hidden');
         });
 </script>
 {% endblock %}
