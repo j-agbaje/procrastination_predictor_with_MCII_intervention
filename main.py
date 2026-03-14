@@ -13,6 +13,7 @@ from typing import Optional, Dict, Any
 import numpy as np
 import os
 import secrets
+import string
 import hashlib
 import json
 import pickle
@@ -35,6 +36,7 @@ from database import Base, engine, SessionLocal, get_db
 from models import Student, Admin, Task, WeeklyBundle, Prediction, MCIIIntervention, BehavioralLog, Survey
 import tensorflow as tf
 from datetime import datetime, timedelta
+from contextlib import asynccontextmanager
 
 
 # ── Directory configuration 
@@ -207,15 +209,13 @@ def collate_weekly_bundles(db: Session) -> None:
             if not open_bundle:
                 continue
 
-            start_dt = datetime.combine(open_bundle.start_date, datetime.min.time())
-            end_dt = datetime.combine(open_bundle.end_date, datetime.max.time())
-
             tasks = (
                 db.query(Task)
                 .filter(
                     Task.student_id == student.student_id,
-                    Task.due_date >= start_dt,
-                    Task.due_date <= end_dt,
+                    Task.due_date.isnot(None),
+                    Task.due_date >= open_bundle.start_date,
+                    Task.due_date <= open_bundle.end_date,
                 )
                 .all()
             )
@@ -226,7 +226,7 @@ def collate_weekly_bundles(db: Session) -> None:
                 1
                 for t in tasks
                 if t.status == "overdue"
-                or (t.completed_at is not None and t.completed_at > t.due_date)
+                or (t.completed_at is not None and t.due_date is not None and t.completed_at.date() > t.due_date)
             )
             completion_rate = (tasks_completed / tasks_total) if tasks_total > 0 else 0.0
             submitted_late = 1 if tasks_late > 0 else 0
@@ -290,7 +290,9 @@ def assign_tasks_to_bundles(db: Session) -> None:
 
     for task in pending_tasks:
         try:
-            task_date = task.due_date.date()
+            if task.due_date is None:
+                continue
+            task_date = task.due_date
             bundle = (
                 db.query(WeeklyBundle)
                 .filter(
@@ -492,6 +494,26 @@ def compute_prediction(student: Student, db: Session) -> Optional[dict]:
             "overdue_count":        overdue_count,
         }
     }
+
+
+# Daily rotating MCII implementation intention tips (deterministic by day of year)
+MCII_DAILY_TIPS = [
+    "If I feel like checking social media during study time, then I will put my phone in another room for 25 minutes first.",
+    "If I sit down to study and feel overwhelmed, then I will write down just the first small step and do only that.",
+    "If I notice myself opening a distraction app, then I will close it and set a 10-minute timer for one task.",
+    "If it's my planned study block and I don't feel like starting, then I will tell myself I'll do just 5 minutes and then can stop.",
+    "If I finish a small chunk of work, then I will take a 2-minute stretch break before deciding what's next.",
+    "If I'm tempted to skip a study session, then I will at least open my notes and read one paragraph.",
+    "If I catch myself saying 'I'll do it later', then I will do the very next physical action (e.g. open the file) right now.",
+    "If my environment is noisy or distracting, then I will move to a quieter spot or put on focus music before continuing.",
+    "If I'm avoiding a hard task, then I will spend 2 minutes writing down why it matters and one tiny first step.",
+    "If I have multiple deadlines, then I will pick the single most urgent one and work on it for one Pomodoro before switching.",
+    "If I feel tired and want to procrastinate, then I will do a 2-minute walk or splash water on my face, then try one 15-minute block.",
+    "If I'm studying and my mind wanders, then I will write the distracting thought on a sticky note and return to the task.",
+    "If a task feels too big, then I will break it into three smaller steps and do only the first one today.",
+    "If I'm waiting for 'the right mood' to start, then I will start with the easiest part of the task for 5 minutes.",
+    "If I complete a task before the deadline, then I will note what helped and reuse that condition next time.",
+]
 
 
 def generate_mcii_tip(risk_level: str, confidence_score: float) -> str:
@@ -700,8 +722,18 @@ def _run_assign_tasks_to_bundles() -> None:
 
 
 # ── FastAPI App 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup
+    scheduler.add_job(_run_collate_weekly_bundles, "cron", day_of_week="sun", hour=23, minute=59, timezone="UTC")
+    scheduler.add_job(nightly_inference, "cron", hour=0, minute=5, timezone="UTC")
+    scheduler.add_job(_run_assign_tasks_to_bundles, "cron", hour=0, minute=10, timezone="UTC")
+    scheduler.start()
+    yield
+    # shutdown
+    scheduler.shutdown()
 
-app = FastAPI(title="ProActive")
+app = FastAPI(title="ProActive", lifespan=lifespan)
 
 app.add_middleware(
     SessionMiddleware,
@@ -713,18 +745,6 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # upload_dir = BASE_DIR / "media" / "profile_pics"
 app.mount("/media", StaticFiles(directory=BASE_DIR / "media"), name="media")
 
-
-@app.on_event("startup")
-def start_scheduler():
-    scheduler.add_job(_run_collate_weekly_bundles, "cron", day_of_week="sun", hour=23, minute=59, timezone="UTC")
-    scheduler.add_job(nightly_inference, "cron", hour=0, minute=5, timezone="UTC")
-    scheduler.add_job(_run_assign_tasks_to_bundles, "cron", hour=0, minute=10, timezone="UTC")
-    scheduler.start()
-
-
-@app.on_event("shutdown")
-def stop_scheduler():
-    scheduler.shutdown()
 
 
 @app.post("/admin/run-scheduler")
@@ -770,7 +790,9 @@ async def student_dashboard(
     tasks = (
         db.query(Task)
         .filter(Task.student_id == current_user["user_id"])
-        .filter(Task.due_date >= datetime.combine(today, datetime.min.time()))
+        .filter(
+            (Task.due_date.is_(None)) | (Task.due_date >= today)
+        )
         .order_by(Task.due_date.asc())
         .all()
     )
@@ -782,6 +804,10 @@ async def student_dashboard(
         .first()
     )
 
+    # Daily MCII tip: same for the whole day, changes by day of year
+    day_of_year = date.today().timetuple().tm_yday
+    mcii_tip = MCII_DAILY_TIPS[day_of_year % len(MCII_DAILY_TIPS)]
+
     return templates.TemplateResponse("student_dashboard.html", {
         "request":          request,
         "current_user":     current_user,
@@ -789,6 +815,7 @@ async def student_dashboard(
         "student_id":       current_user["user_id"],
         "tasks":            tasks,
         "prediction":       latest_prediction,
+        "mcii_tip":         mcii_tip,
     })
 
 
@@ -1205,17 +1232,27 @@ def get_student_trend(
     current_user: dict = Depends(require_student),
     db: Session = Depends(get_db),
 ):
-    """Return last 14 predictions for trend chart; 403 if not own student."""
+    """Return last 14 days of predictions, one per day (latest only); 403 if not own student. Skips days with no prediction."""
     if current_user["user_id"] != student_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+    today = date.today()
+    start = today - timedelta(days=14)
     rows = (
         db.query(Prediction)
-        .filter(Prediction.student_id == student_id)
-        .order_by(Prediction.prediction_date.asc())
-        .limit(14)
+        .filter(
+            Prediction.student_id == student_id,
+            Prediction.prediction_date >= start,
+            Prediction.prediction_date <= today,
+        )
+        .order_by(Prediction.prediction_date.asc(), Prediction.prediction_id.asc())
         .all()
     )
-    if len(rows) < 2:
+    # One prediction per day: keep latest per prediction_date
+    by_date: Dict[date, Any] = {}
+    for r in rows:
+        by_date[r.prediction_date] = r
+    sorted_dates = sorted(by_date.keys())
+    if len(sorted_dates) < 2:
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
@@ -1226,9 +1263,9 @@ def get_student_trend(
                 "trend_pct": 0,
             },
         )
-    labels = [r.prediction_date.strftime("%b %d") for r in rows]
-    scores = [float(r.confidence_score) for r in rows]
-    risk_levels = [r.risk_level for r in rows]
+    labels = [d.strftime("%b %d") for d in sorted_dates]
+    scores = [float(by_date[d].confidence_score) for d in sorted_dates]
+    risk_levels = [by_date[d].risk_level for d in sorted_dates]
     n = len(scores)
     if n >= 6:
         recent_avg = sum(scores[-3:]) / 3
@@ -1266,31 +1303,52 @@ async def admin_dashboard(
     db: Session = Depends(get_db)
 ):
     per_page = 20
+    admin_id = current_user["user_id"]
 
-    # ── Stats (all dynamic from DB) ──
-    total_students  = db.query(Student).count()
-    high_risk_count = db.query(Student).filter(Student.current_risk_level == "high").count()
+    # Cohort: only students linked to this admin
+    cohort_base = db.query(Student).filter(Student.admin_id == admin_id)
 
-    students_with_interventions = db.query(MCIIIntervention.student_id).distinct().count()
+    # ── Stats scoped to cohort ──
+    total_students  = cohort_base.count()
+    high_risk_count = cohort_base.filter(Student.current_risk_level == "high").count()
+
+    cohort_student_ids = [r.student_id for r in cohort_base.with_entities(Student.student_id).all()]
+    students_with_interventions = (
+        db.query(MCIIIntervention.student_id)
+        .filter(MCIIIntervention.student_id.in_(cohort_student_ids))
+        .distinct()
+        .count()
+    ) if cohort_student_ids else 0
     mcii_engagement = round((students_with_interventions / total_students * 100), 1) if total_students > 0 else 0
 
-    total_tasks     = db.query(Task).count()
-    completed_tasks = db.query(Task).filter(Task.status == "completed").count()
-    avg_progress    = round((completed_tasks / total_tasks * 100), 1) if total_tasks > 0 else 0
+    # Avg confidence: average of latest prediction per cohort student (Prompt 5)
+    avg_confidence = 0.0
+    if cohort_student_ids:
+        latest_scores = []
+        for sid in cohort_student_ids:
+            p = (
+                db.query(Prediction)
+                .filter(Prediction.student_id == sid)
+                .order_by(Prediction.prediction_date.desc())
+                .first()
+            )
+            if p is not None:
+                latest_scores.append(float(p.confidence_score))
+        avg_confidence = round(sum(latest_scores) / len(latest_scores) * 100, 1) if latest_scores else 0.0
 
-    # ── Student query with filters ──
-    query = db.query(Student)
+    # ── Student query with filters (cohort only) ──
+    query = db.query(Student).filter(Student.admin_id == admin_id)
 
     if risk_filter:
         query = query.filter(Student.current_risk_level == risk_filter)
 
     if search:
         query = query.filter(
-    or_(
-        Student.email.ilike(f"%{search}%"),
-        Student.full_name.ilike(f"%{search}%")
-    )
-)
+            or_(
+                Student.email.ilike(f"%{search}%"),
+                Student.full_name.ilike(f"%{search}%"),
+            )
+        )
 
     total_filtered = query.count()
     flash_success = request.session.pop("flash_success", None)
@@ -1311,6 +1369,10 @@ async def admin_dashboard(
         )
         students_with_predictions.append({"student": s, "prediction": pred})
 
+    # Admin invite code for header badge
+    admin_row = db.query(Admin).filter(Admin.admin_id == admin_id).first()
+    invite_code = admin_row.invite_code if admin_row else None
+
     return templates.TemplateResponse("admin_dashboard.html", {
         "request": request,
         "current_user": current_user,
@@ -1318,7 +1380,7 @@ async def admin_dashboard(
             "total_students": total_students,
             "high_risk_alerts": high_risk_count,
             "mcii_engagement": mcii_engagement,
-            "avg_progress": avg_progress,
+            "avg_confidence": avg_confidence,
         },
         "students": students_with_predictions,
         "page": page,
@@ -1327,7 +1389,29 @@ async def admin_dashboard(
         "risk_filter": risk_filter,
         "search": search,
         "flash_success": flash_success,
+        "invite_code": invite_code,
     })
+
+
+@app.get("/admin/profile", response_class=HTMLResponse)
+async def admin_profile_page(
+    request: Request,
+    current_user: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Display admin profile with invite code for sharing with students."""
+    admin = db.query(Admin).filter(Admin.admin_id == current_user["user_id"]).first()
+    if not admin:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin not found")
+    return templates.TemplateResponse(
+        "admin_profile.html",
+        {
+            "request": request,
+            "current_user": current_user,
+            "admin": admin,
+            "invite_code": admin.invite_code or "—",
+        },
+    )
 
 
 @app.get("/admin/create-admin", response_class=HTMLResponse)
@@ -1369,11 +1453,19 @@ async def admin_create_submit(
             {"request": request, "current_user": current_user, "error": error},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+    # Auto-generate 8-char alphanumeric invite code (ensure unique)
+    for _ in range(10):
+        invite_code = "".join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+        if not db.query(Admin).filter(Admin.invite_code == invite_code).first():
+            break
+    else:
+        invite_code = secrets.token_hex(4).upper()[:8]
     try:
         new_admin = Admin(
             email=email_clean,
             password_hash=hash_password(password),
             department=department_clean or "General",
+            invite_code=invite_code,
         )
         db.add(new_admin)
         db.commit()
@@ -1387,6 +1479,134 @@ async def admin_create_submit(
                 "request": request,
                 "current_user": current_user,
                 "error": "Could not create account. Try again.",
+            },
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@app.get("/admin/assign-task", response_class=HTMLResponse)
+async def admin_assign_task_page(
+    request: Request,
+    current_user: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Render form to assign a task to all cohort students."""
+    admin_id = current_user["user_id"]
+    cohort_count = db.query(Student).filter(Student.admin_id == admin_id).count()
+    return templates.TemplateResponse(
+        "admin_assign_task.html",
+        {
+            "request": request,
+            "current_user": current_user,
+            "cohort_count": cohort_count,
+            "error": None,
+            "flash_success": None,
+        },
+    )
+
+
+@app.post("/admin/assign-task", response_class=HTMLResponse)
+async def admin_assign_task_submit(
+    request: Request,
+    title: str = Form(...),
+    due_date: Optional[str] = Form(default=""),
+    task_type: str = Form("assignment"),
+    current_user: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Create the same task for every student in the admin's cohort. Safeguard: reject if already assigned."""
+    admin_id = current_user["user_id"]
+    cohort_students = db.query(Student).filter(Student.admin_id == admin_id).all()
+    cohort_count = len(cohort_students)
+    if cohort_count == 0:
+        return templates.TemplateResponse(
+            "admin_assign_task.html",
+            {
+                "request": request,
+                "current_user": current_user,
+                "cohort_count": 0,
+                "error": "You have no students in your cohort yet. Share your invite code with students to add them.",
+                "flash_success": None,
+            },
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    due_date_val: Optional[datetime] = None
+    if due_date and due_date.strip():
+        try:
+            due_date_val = datetime.strptime(due_date.strip(), "%Y-%m-%dT%H:%M")
+        except ValueError:
+            try:
+                due_date_val = datetime.strptime(due_date.strip()[:10], "%Y-%m-%d")
+            except ValueError:
+                pass
+    # Safeguard: check if this exact task (same title, due_date, created_by_admin_id) already exists for any cohort student
+    dup_query = (
+        db.query(Task)
+        .filter(
+            Task.title == title.strip(),
+            Task.created_by_admin_id == admin_id,
+            Task.is_admin_assigned == True,
+        )
+        .join(Student, Task.student_id == Student.student_id)
+        .filter(Student.admin_id == admin_id)
+    )
+    if due_date_val is None:
+        existing = dup_query.filter(Task.due_date.is_(None)).first()
+    else:
+        existing = dup_query.filter(
+            Task.due_date >= due_date_val.replace(hour=0, minute=0, second=0),
+            Task.due_date <= due_date_val.replace(hour=23, minute=59, second=59)
+        ).first()
+    if existing:
+        return templates.TemplateResponse(
+            "admin_assign_task.html",
+            {
+                "request": request,
+                "current_user": current_user,
+                "cohort_count": cohort_count,
+                "error": "This task has already been assigned.",
+                "flash_success": None,
+            },
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    allowed_types = ("assignment", "quiz", "summative", "formative")
+    task_type_clean = task_type if task_type in allowed_types else "assignment"
+
+    try:
+        for student in cohort_students:
+            active_bundle = (
+                db.query(WeeklyBundle)
+                .filter(WeeklyBundle.student_id == student.student_id, WeeklyBundle.is_closed == 0)
+                .order_by(WeeklyBundle.week_number.desc())
+                .first()
+            )
+            task = Task(
+                student_id=student.student_id,
+                bundle_id=active_bundle.bundle_id if active_bundle else None,
+                title=title.strip(),
+                due_date=due_date_val,
+                status="pending",
+                task_type=task_type_clean,
+                is_admin_assigned=True,
+                created_by_admin_id=admin_id,
+            )
+            db.add(task)
+        db.commit()
+        request.session["flash_success"] = f"Task assigned to {cohort_count} student(s)."
+        return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    except Exception as exc:
+        db.rollback()
+        logger.exception("admin_assign_task failed: %s", exc)
+        return templates.TemplateResponse(
+            "admin_assign_task.html",
+            {
+                "request": request,
+                "current_user": current_user,
+                "cohort_count": cohort_count,
+                "error": "Could not assign task. Please try again.",
+                "flash_success": None,
             },
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -1416,6 +1636,9 @@ async def admin_student_detail(
             },
             status_code=status.HTTP_404_NOT_FOUND,
         )
+    # Cohort scope: only view students in this admin's cohort
+    if student.admin_id != current_user["user_id"]:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
 
     predictions = (
         db.query(Prediction)
@@ -1438,13 +1661,6 @@ async def admin_student_detail(
         .filter(WeeklyBundle.student_id == student_id)
         .order_by(WeeklyBundle.week_number.desc())
         .all()
-    )
-
-    latest_intervention = (
-        db.query(MCIIIntervention)
-        .filter(MCIIIntervention.student_id == student_id)
-        .order_by(MCIIIntervention.delivery_time.desc())
-        .first()
     )
 
     total_tasks = db.query(Task).filter(Task.student_id == student_id).count()
@@ -1476,7 +1692,6 @@ async def admin_student_detail(
             "predictions": predictions,
             "tasks": tasks,
             "bundles": bundles,
-            "latest_intervention": latest_intervention,
             "task_stats": task_stats,
             "latest_prediction": latest_prediction,
         },
@@ -1527,8 +1742,9 @@ async def handle_signup(
     name:          str = Form(...),
     email:         str = Form(...),
     password:      str = Form(...),
-    prior_profile: str = Form(default="mixed"),  # from study habits question on signup form
-    db: Session = Depends(get_db)
+    prior_profile: str = Form(default="mixed"),
+    invite_code:   str = Form(default=""),
+    db: Session = Depends(get_db),
 ):
     if db.query(Student).filter(Student.email == email).first():
         return templates.TemplateResponse(
@@ -1536,6 +1752,17 @@ async def handle_signup(
             {"request": request, "error": "An account with this email already exists"},
             status_code=status.HTTP_400_BAD_REQUEST
         )
+
+    admin_id_val: Optional[int] = None
+    if invite_code and (code_clean := invite_code.strip()):
+        admin_by_code = db.query(Admin).filter(Admin.invite_code == code_clean).first()
+        if not admin_by_code:
+            return templates.TemplateResponse(
+                "signup.html",
+                {"request": request, "error": "Invalid invite code. Please check the code or leave it blank to sign up without a course."},
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        admin_id_val = admin_by_code.admin_id
 
     student = Student(
         email=email,
@@ -1545,6 +1772,7 @@ async def handle_signup(
         current_risk_level="low",
         prior_profile=prior_profile,
         days_active=0,
+        admin_id=admin_id_val,
     )
     db.add(student)
     db.commit()
@@ -1588,26 +1816,36 @@ async def handle_logout(
 
 @app.post("/student/tasks/create")
 async def create_task(
-    request:Request,
-    title:str= Form(...),
-    due_date:datetime = Form(...),
+    request: Request,
+    title: str = Form(...),
+    due_date: Optional[str] = Form(default=""),
     description: str = Form(default=""),
     current_user: dict = Depends(require_student),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    # Find the active (open) bundle for this student to assign the task to
+    due_date_val: Optional[datetime] = None
+    if due_date and due_date.strip():
+        try:
+            due_date_val = datetime.strptime(due_date.strip(), "%Y-%m-%dT%H:%M")
+        except ValueError:
+            try:
+                due_date_val = datetime.strptime(due_date.strip()[:10], "%Y-%m-%d")
+            except ValueError:
+                pass
     active_bundle = (
         db.query(WeeklyBundle)
         .filter(WeeklyBundle.student_id == current_user["user_id"], WeeklyBundle.is_closed == 0)
         .first()
     )
     task = Task(
-        student_id = current_user["user_id"],
-        bundle_id  = active_bundle.bundle_id if active_bundle else None,
-        title = title,
-        description = description,
-        due_date= due_date,
-        status = "pending"
+        student_id=current_user["user_id"],
+        bundle_id=active_bundle.bundle_id if active_bundle else None,
+        title=title,
+        description=description or None,
+        due_date=due_date_val,
+        status="pending",
+        task_type="personal",
+        is_admin_assigned=False,
     )
     db.add(task)
     db.commit()
@@ -1668,8 +1906,8 @@ async def generate_prediction(
     db: Session           = Depends(get_db)
 ):
     """
-    Runs the full inference pipeline for a student.
-    Which model is used depends on how many closed bundles exist, not days_active directly.
+    Runs the full inference pipeline for a student. Idempotent: if a prediction for today
+    already exists, returns it without creating a duplicate.
     """
     if current_user["user_id"] != student_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only generate predictions for yourself")
@@ -1677,6 +1915,17 @@ async def generate_prediction(
     student = db.query(Student).filter(Student.student_id == student_id).first()
     if not student:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    existing = (
+        db.query(Prediction)
+        .filter(
+            Prediction.student_id == student_id,
+            Prediction.prediction_date == date.today(),
+        )
+        .first()
+    )
+    if existing:
+        return PredictionResponse.model_validate(existing)
 
     result = compute_prediction(student, db)
     if not result:

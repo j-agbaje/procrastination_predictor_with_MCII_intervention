@@ -15,12 +15,25 @@
             <h1 class="text-2xl font-bold">Admin Dashboard</h1>
             <p class="text-gray-500 text-sm">Monitoring student performance and AI predictions</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 flex-wrap">
+            {% if invite_code %}
+            <span
+                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-mono font-bold text-gray-700 dark:text-gray-300"
+                title="Share this code with students to join your cohort">
+                <span class="material-symbols-outlined text-base">confirmation_number</span>
+                My Invite Code: <span id="admin-invite-code">{{ invite_code }}</span>
+            </span>
+            {% endif %}
             <button id="run-scheduler-btn" onclick="runScheduler()"
                 class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-blue-700 transition">
                 <span class="material-symbols-outlined text-sm">play_arrow</span>
                 <span id="run-scheduler-label">Run Scheduler</span>
             </button>
+            <a href="/admin/assign-task"
+                class="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-gray-50 transition">
+                <span class="material-symbols-outlined text-sm">assignment_add</span>
+                Assign Task
+            </a>
             <a href="/admin/create-admin"
                 class="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-gray-50 transition">
                 <span class="material-symbols-outlined text-sm">person_add</span>
@@ -54,10 +67,10 @@
             </p>
         </div>
         <div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-            <p class="text-gray-500 text-sm font-medium">Avg. Progress</p>
-            <h3 class="text-3xl font-bold mt-1">{{ stats.avg_progress }}%</h3>
+            <p class="text-gray-500 text-sm font-medium">Avg. AI Confidence</p>
+            <h3 class="text-3xl font-bold mt-1">{{ stats.avg_confidence }}%</h3>
             <p class="text-gray-500 text-xs mt-2 font-medium flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">horizontal_rule</span> Task completion rate
+                <span class="material-symbols-outlined text-xs">psychology</span> Prediction certainty across cohort
             </p>
         </div>
     </div>
@@ -254,7 +267,7 @@
         try {
             const res = await fetch('/admin/run-scheduler', { method: 'POST' });
             const data = await res.json();
-            label.textContent = `Done — ${data.students_processed} students processed`;
+            label.textContent = `Done — ${data.message}`;
             btn.classList.remove('bg-primary', 'hover:bg-blue-700');
             btn.classList.add('bg-green-600');
             // Reload after 2s so stats cards refresh

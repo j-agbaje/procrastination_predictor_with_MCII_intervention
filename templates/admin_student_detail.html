@@ -145,7 +145,7 @@
                     {% for task in tasks %}
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition">
                         <td class="px-4 py-2 text-[13px] font-medium">{{ task.title }}</td>
-                        <td class="px-4 py-2">{{ task.due_date.strftime('%b %d, %Y %I:%M %p') }}</td>
+                        <td class="px-4 py-2">{{ task.due_date.strftime('%b %d, %Y') if task.due_date else '—' }}</td>
                         <td class="px-4 py-2">
                             {% if task.status == 'completed' %}
                             <span
@@ -268,25 +268,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
-
-    {# SECTION 7 — Latest MCII intervention #}
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mb-6">
-        <h2 class="text-lg font-bold mb-3">Latest MCII Intervention</h2>
-        {% if latest_intervention %}
-        <div class="space-y-2 text-sm">
-            <p><span class="font-semibold text-gray-500">Prompt:</span> {{ latest_intervention.prompt_text }}</p>
-            <p><span class="font-semibold text-gray-500">Delivery:</span> {{
-                latest_intervention.delivery_time.strftime('%b %d, %Y %I:%M %p') if latest_intervention.delivery_time
-                else '—' }}</p>
-            <p><span class="font-semibold text-gray-500">Response:</span> {{ latest_intervention.user_response or '—' }}
-            </p>
-            <p><span class="font-semibold text-gray-500">Was helpful:</span> {{ 'Yes' if latest_intervention.was_helpful
-                is true else 'No' if latest_intervention.was_helpful is false else '—' }}</p>
-        </div>
-        {% else %}
-        <p class="text-sm text-gray-500">No interventions yet.</p>
-        {% endif %}
     </div>
 
 </div>

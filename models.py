@@ -3,7 +3,7 @@ from pydoc import text
 from sqlalchemy import String, Integer, Date, DateTime, Enum, JSON, Text, Boolean, DECIMAL, TIMESTAMP, ForeignKey
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime, UTC
+from datetime import datetime, date, UTC
 from database import Base
 
 
@@ -21,6 +21,7 @@ class Student(Base):
     phone:Mapped[str | None] = mapped_column(String(20))
     profile_pic: Mapped[str | None] = mapped_column(String(200), nullable=True, default=None)
     bio: Mapped[str | None] = mapped_column(Text)
+    admin_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("Admins.admin_id"), nullable=True, index=True)
 
     # Student
     tasks: Mapped[list["Task"]] = relationship(back_populates="student")
@@ -43,6 +44,7 @@ class Admin(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True)
     password_hash:Mapped[str] = mapped_column(String(255))
     department: Mapped[str | None]= mapped_column(String(100))
+    invite_code: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True, index=True)
     access_level: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime | None]= mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
@@ -71,11 +73,13 @@ class Task(Base):
     bundle_id:  Mapped[int | None] = mapped_column(Integer, ForeignKey("WeeklyBundles.bundle_id"), nullable=True, index=True)
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[str | None] = mapped_column(Text)
-    due_date: Mapped[datetime] = mapped_column(DateTime)
+    due_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at:Mapped[datetime | None]= mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     completed_at: Mapped[datetime | None]= mapped_column(DateTime(timezone=True), nullable=True)
     status:Mapped[str] = mapped_column(Enum('pending', 'in_progress', 'completed', 'overdue'), default='pending')
-
+    task_type: Mapped[str] = mapped_column(String(20), default="personal")
+    is_admin_assigned: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_by_admin_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("Admins.admin_id"), nullable=True)
 
     student: Mapped["Student"] = relationship(back_populates="tasks")
 
