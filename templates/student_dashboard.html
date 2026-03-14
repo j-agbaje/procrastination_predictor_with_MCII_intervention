@@ -8,7 +8,7 @@
 {% block content %}
 <div class="mx-auto max-w-6xl">
     <div class="mb-8">
-        <h2 class="text-2xl font-bold">Welcome back, {{ current_user.email.split('@')[0] | title }}</h2>
+        <h2 class="text-2xl font-bold">Welcome back, {{ student.full_name.split()[0] }}</h2>
         <p class="text-gray-500">Here's what your AI coach is seeing today.</p>
     </div>
 
@@ -62,6 +62,24 @@
                             and using the MCII chat for strategies.
                             {% endif %}
                         </p>
+
+                        {% if is_new_user %}
+                        <div class="mt-3 p-3 bg-white/60 border border-current/10 rounded-lg flex items-start gap-2">
+                            <span class="material-symbols-outlined text-sm mt-0.5
+                                    {% if prediction.risk_level == 'high' %}text-red-600
+                                    {% elif prediction.risk_level == 'medium' %}text-orange-600
+                                    {% else %}text-green-600{% endif %}">flag</span>
+                            <p class="text-xs leading-relaxed
+                                    {% if prediction.risk_level == 'high' %}text-red-800
+                                    {% elif prediction.risk_level == 'medium' %}text-orange-800
+                                    {% else %}text-green-800{% endif %}">
+                                This initial prediction is based on average patterns from students with a similar
+                                study habit to yours(as you indicated in the signup page). As you interact with the platform daily, the AI will learn your real
+                                habits and predictions will become personalised to you.
+                            </p>
+                        </div>
+                        {% endif %}
+
                         {% else %}
                         <h3 class="text-xl font-bold">No Prediction Yet</h3>
                         <p class="mt-2 text-sm">Complete more tasks to get your AI risk assessment.</p>

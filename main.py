@@ -808,6 +808,12 @@ async def student_dashboard(
     day_of_year = date.today().timetuple().tm_yday
     mcii_tip = MCII_DAILY_TIPS[day_of_year % len(MCII_DAILY_TIPS)]
 
+
+    is_new_user = (
+        latest_prediction is not None and
+        latest_prediction.prediction_date == date.today() and
+        db.query(Prediction).filter(Prediction.student_id == current_user["user_id"]).count() == 1
+    )
     return templates.TemplateResponse("student_dashboard.html", {
         "request":          request,
         "current_user":     current_user,
@@ -816,6 +822,7 @@ async def student_dashboard(
         "tasks":            tasks,
         "prediction":       latest_prediction,
         "mcii_tip":         mcii_tip,
+        "is_new_user": is_new_user
     })
 
 
