@@ -35,11 +35,11 @@ build/
 Thumbs.db
 
 # Model files (too large for Git)
-*.h5
-*.pkl
-*.joblib
-backend/models/saved_models/*.h5
-backend/models/saved_models/*.pkl
+# *.h5
+# *.pkl
+# *.joblib
+# backend/models/saved_models/*.h5
+# backend/models/saved_models/*.pkl
 
 # Data files (too large for Git)
 data/oulad/*.csv
