@@ -31,7 +31,7 @@ from schemas import SignupRequest, LoginRequest, TaskCreate, TaskUpdate, Profile
 from dotenv import load_dotenv
 
 
-load_dotenv()
+load_dotenv(override=False)
 from database import Base, engine, SessionLocal, get_db
 from models import Student, Admin, Task, WeeklyBundle, Prediction, MCIIIntervention, BehavioralLog, Survey
 import tensorflow as tf

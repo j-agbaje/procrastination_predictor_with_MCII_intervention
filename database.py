@@ -5,7 +5,10 @@ from dotenv import load_dotenv
 import os
 from sqlalchemy.orm import DeclarativeBase
 
-load_dotenv()
+load_dotenv(override=False)
+
+
+
 
 # DATABASE_URL = os.environ.get("DATABASE_URL")
 # if not DATABASE_URL:
