@@ -1,327 +1,174 @@
-# ProActive - AI-Powered Student Productivity Platform
+# ProActive — AI-Powered Procrastination Prediction and Intervention Platform
 
-**Master your time with AI-driven predictive tracking**
+## Live Deployment
 
-ProActive uses BiLSTM neural networks and Mental Contrasting Implementation Intentions (MCII) to help students identify procrastination patterns before they become missed deadlines.
+https://web-production-185b1.up.railway.app
 
-## 🎥 Video Demo
+## Demo Video
 
-[https://drive.google.com/file/d/19wgmgCOhaH6As0hXxTeW66HzxtqUESZx/view?usp=sharing]
+https://drive.google.com/drive/folders/1UvOCR0r9ar3CJjasf_pjP_13DSkZcWwE?usp=sharing
 
----
+## Testing and Evaluation
 
-## 🚀 Features
+See [TESTING.md](TESTING.md) for the full testing report, including functional testing results, performance benchmarks, cross-browser testing, data variation testing, ML model evaluation, analysis, discussion, and recommendations.
 
-### Student Features
-- **AI Procrastination Prediction**: BiLSTM model analyzes engagement patterns to predict task delays
-- **MCII Intervention Assistant**: Chat-based cognitive behavioral intervention using proven psychological frameworks
-- **Smart Task Management**: Priority-based task organization with AI-driven recommendations
-- **Personalized Dashboard**: Real-time insights on study velocity, weekly activity, and productivity metrics
-- **Risk Alerts**: Proactive notifications for assignments at risk of delay
+## Project Overview
 
-### Admin Features
-- **Student Monitoring Dashboard**: Track student performance across courses
-- **High-Risk Alert System**: Identify students requiring immediate attention (42 high-risk alerts)
-- **MCII Engagement Tracking**: Monitor platform engagement (86% current rate)
-- **Performance Analytics**: View average progress (74.2%) and trends
-- **Detailed Activity Logs**: Individual risk levels, courses, and last active timestamps
+ProActive is a full-stack web application that predicts student procrastination using a Bidirectional LSTM neural network with Bahdanau attention, and delivers MCII (Mental Contrasting with Implementation Intentions) interventions through an AI coaching chatbot powered by Anthropic Claude. It supports both individual students managing their own productivity and institutional use where an admin monitors a cohort of students.
 
----
+### Core Features
 
-## 🏗️ Tech Stack
+- Daily AI risk predictions (low / medium / high) based on weekly behavioural bundles
+- Prior profiles cold-start solution for new students with no behavioural history
+- MCII chatbot with 48-hour conversation memory and live student context
+- Admin cohort system with invite codes, task assignment, and risk monitoring
+- Student dashboard with 14-day risk trend graph and daily rotating MCII tips
+- Task management with due dates, task types, and admin-assigned tasks
 
-### Backend
-- **FastAPI** - High-performance Python web framework
-- **MySQL** - Relational database for user and task management
-- **TensorFlow/Keras** - BiLSTM model training and serving
-- **Scikit-learn** - Feature preprocessing and encoding
+### Tech Stack
 
-### Frontend
-- **HTML/CSS/JavaScript** - Responsive UI components
-- **Fetch API** - RESTful communication with backend
+| Layer | Technology |
+|---|---|
+| Backend | FastAPI (Python 3.12) |
+| Database | MySQL |
+| ML | TensorFlow / Keras — BiLSTM + Bahdanau Attention |
+| AI chatbot | Anthropic Claude (claude-haiku-4-5-20251001) |
+| Frontend | Jinja2 + Tailwind CSS |
+| Scheduler | APScheduler |
+| Deployment | Railway |
 
-### Machine Learning
-- **BiLSTM Neural Network** - Sequential pattern recognition for procrastination prediction
-- **Label Encoding** - Categorical feature transformation
-- **Standard Scaling** - Feature normalization
-- **Training Data**: Open University Learning Analytics Dataset (OULAD)
+### ML Model Performance
 
----
+| Model | Accuracy | F1 | AUC-ROC |
+|---|---|---|---|
+| BiLSTM 7-window (main) | 88.74% | 0.8874 | 0.9428 |
+| BiLSTM 3-window (cold start) | 86.03% | 0.8569 | 0.9043 |
+| SVM baseline | 68.16% | 0.6911 | 0.8231 |
 
-## 📁 Project Structure
-
-```
-ProActive/
-├── backend/
-│   ├── main.py                    # FastAPI server & endpoints
-│   ├── database/
-│   │   └── schema.sql            # MySQL database schema
-│   └── models/
-│       └── saved_models/
-│           ├── procrastination_bilstm.h5
-│           ├── label_encoder.pkl
-│           └── scaler.pkl
-├── frontend/
-│   ├── student_dashboard.html
-│   ├── admin_dashboard.html
-│   ├── mcii_chat.html
-│   ├── tasks.html
-│   ├── login.html
-│   ├── signup.html
-│   └── js/
-│       ├── auth.js
-│       └── dashboard.js
-├── data/
-│   ├── oulad/                    # Raw OULAD dataset
-│   └── processed/                # Preprocessed features
-├── ml_notebooks/
-│   └── oulad_analysis_v2.ipynb  # Model training notebook
-└── requirements.txt
-```
+Benchmarks from Memon et al. (2020): ANN 83.5%, XGBoost 87.0%.
 
 ---
 
-## 🛠️ Installation & Setup
+## Installation and Setup
 
 ### Prerequisites
-```bash
-Python 3.8+
-MySQL 8.0+
-pip package manager
-```
 
-### 1. Clone Repository
+- Python 3.12
+- MySQL 8.0 or higher
+- pip
+
+### Step 1 — Clone the repository
+
 ```bash
 git clone https://github.com/yourusername/proactive.git
 cd proactive
 ```
 
-### 2. Install Dependencies
+### Step 2 — Create a virtual environment
+
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+
+On Windows:
+```bash
+venv\Scripts\activate
+```
+
+### Step 3 — Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Database Setup
+### Step 4 — Create environment variables
+
+Create a `.env` file in the project root:
+
+```
+SECRET_KEY=your_long_random_secret_key
+DATABASE_URL=mysql+pymysql://root:password@localhost:3306/proactivedb
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+```
+
+### Step 5 — Set up the database
+
+Create the database in MySQL:
+
+```sql
+CREATE DATABASE proactivedb;
+```
+
+Then run the schema:
+
 ```bash
-# Create database
-mysql -u root -p
-CREATE DATABASE proactive_db;
-USE proactive_db;
-SOURCE backend/database/schema.sql;
-exit;
+mysql -u root -p proactivedb < schema.sql
 ```
 
-### 4. Run Backend Server
+Insert a default admin account:
+
+```sql
+INSERT INTO Admins (email, password_hash, department, invite_code)
+VALUES ('admin@proactive.com', SHA2('admin123', 256), 'Computer Science', 'PROACTIVE1');
+```
+
+### Step 6 — Run the application
+
 ```bash
-cd backend
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload
 ```
 
-### 5. Access Application
-Open browser to `http://localhost:8000`
+The application runs at http://localhost:8000.
+
+### Step 7 — Seed initial data
+
+Log in as the admin at http://localhost:8000/login and click Run Scheduler to generate the first round of predictions for any registered students.
 
 ---
 
-## 🗄️ Database Schema
+## Default Login Credentials
 
-### Core Tables
-- **Students**: User authentication, enrollment data, risk levels
-- **Admins**: Admin authentication and access control
-- **Tasks**: Student task management with status tracking
-- **Predictions**: AI-generated risk predictions with confidence scores
-- **MCIIInterventions**: MCII prompts and student responses
-- **BehavioralLogs**: Session tracking and engagement metrics
-- **Surveys**: Student survey responses (JSON format)
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@proactive.com | admin123 |
 
-### Key Relationships
-- Students ← Tasks (1:N)
-- Students ← Predictions (1:N)
-- Predictions ← MCIIInterventions (1:N)
-- Students ← BehavioralLogs (1:N)
+Students self-register at `/signup`. Use invite code `PROACTIVE1` to join the admin's cohort.
 
 ---
 
-## 🧠 ML Model Architecture
+## Project Structure
 
-### BiLSTM Procrastination Predictor
-
-**Input Features:**
-- VLE interaction counts
-- Assignment submission timing
-- Assessment scores
-- Study session duration
-- Task completion velocity
-
-**Architecture:**
-- Bidirectional LSTM layers
-- Dropout for regularization
-- Dense layers with softmax activation
-- Output: Risk classification (Low/Medium/High) + confidence score
-
-**Training:**
-- Dataset: OULAD (32,593 students, 22 courses)
-- Validation split: 80/20
-- Loss: Categorical crossentropy
-- Optimizer: Adam
-
-**Model Artifacts:**
 ```
-backend/models/saved_models/
-├── procrastination_bilstm.h5  # Trained model weights
-├── label_encoder.pkl           # Risk level encoder
-└── scaler.pkl                  # Feature scaler
+proactive/
+├── main.py                  # All routes, ML inference, scheduler
+├── database.py              # SQLAlchemy engine and session
+├── models.py                # ORM models
+├── schemas.py               # Pydantic schemas
+├── requirements.txt
+├── Procfile                 # Railway deployment command
+├── runtime.txt              # Python version for Railway
+├── schema.sql               # Database schema
+├── TESTING.md               # Full testing and evaluation report
+├── templates/               # Jinja2 HTML templates
+├── static/                  # CSS and static assets
+├── media/                   # Uploaded profile pictures
+├── models/saved_models/     # BiLSTM model files and scalers
+│   ├── bilstm_7window.h5
+│   ├── bilstm_3window.h5
+│   ├── scaler_7window.pkl
+│   ├── scaler_3window.pkl
+│   ├── prior_profiles.json
+│   └── feature_config.json
+├── ml_notebooks/            # Jupyter notebooks for model training
+└── tests/
+    └── screenshots/         # All testing evidence screenshots
 ```
 
 ---
 
-## 🔌 API Endpoints
+## Deployment
 
-### Authentication
-```
-POST   /api/auth/signup       # Create student account
-POST   /api/auth/login        # User login
-POST   /api/auth/logout       # End session
-```
+The application is deployed on Railway. See [TESTING.md](TESTING.md) section 3 for the full step-by-step deployment plan, environment configuration, and deployment verification results.
 
-### Student Operations
-```
-GET    /api/student/profile   # Get student data
-PUT    /api/student/profile   # Update profile
-GET    /api/student/tasks     # Fetch tasks
-POST   /api/student/tasks     # Create task
-PATCH  /api/student/tasks/:id # Update task status
-```
-
-### AI Predictions
-```
-GET    /api/predictions/:student_id  # Get risk predictions
-POST   /api/predict                  # Generate new prediction
-```
-
-### MCII Interventions
-```
-GET    /api/mcii/interventions       # Get intervention history
-POST   /api/mcii/chat                # MCII conversation endpoint
-```
-
-### Admin Dashboard
-```
-GET    /api/admin/dashboard          # Analytics overview
-GET    /api/admin/students           # Student list with risk levels
-GET    /api/admin/reports            # Export reports
-```
-
----
-
-## ✅ Implementation Status
-
-### Completed
-- ✅ FastAPI backend server with routing
-- ✅ User authentication (signup/login)
-- ✅ MySQL database schema
-- ✅ BiLSTM model training pipeline
-- ✅ Model serialization (H5, PKL files)
-- ✅ Frontend UI for all views
-- ✅ Navigation between pages
-- ✅ MCII intervention interface
-
-### In Progress
-- ⚠️ Model inference API integration
-- ⚠️ Real-time prediction endpoint
-- ⚠️ Task CRUD operations backend
-- ⚠️ Admin dashboard live data
-
----
-
-## 📊 MCII Framework
-
-**Mental Contrasting and Implementation Intentions** - Evidence-based behavioral intervention:
-
-1. **Goal Identification**: Student defines academic objective
-2. **Obstacle Recognition**: AI guides identification of barriers
-3. **Implementation Intention**: Creates "if-then" action plans
-4. **Continuous Support**: 24/7 conversational assistance
-
-**Example:**
-- **Goal**: "Finish calculus assignment on time"
-- **Obstacle**: "I keep checking social media"
-- **Implementation**: "If I feel like browsing social media, then I will close my phone and focus for 10 minutes first"
-
----
-
-## 📱 Screenshots
-
-### Login & Signup
-![Login Page](designs/screenshots/login.png)
-*Secure authentication with email and password*
-
-![Sign Up Page](designs/screenshots/sign_up.png)
-*Student registration with AI-powered insights included*
-
-### Student Dashboard
-![Student Dashboard](designs/screenshots/student_dashboard.png)
-*Real-time AI predictions, weekly activity graphs, and task prioritization*
-
-### MCII Chat Interface
-![MCII Intervention](designs/screenshots/mcii_intervention.png)
-*Interactive intervention assistant using Mental Contrasting and Implementation Intentions framework*
-
-### Task Management
-![Tasks View](designs/screenshots/tasks.png)
-*Priority-based task list with AI-driven scheduling recommendations*
-
-### Student Profile
-![Student Profile](designs/screenshots/student_profile.png)
-*Personalized productivity insights and procrastination risk assessment*
-
-### Admin Dashboard
-![Admin Dashboard](designs/screenshots/admin_dashboard.png)
-*Monitor 1,284 students, track 42 high-risk alerts, 86% MCII engagement*
-
----
-
-## 🔬 Model Training Process
-
-See `ml_notebooks/oulad_analysis_v2.ipynb` for complete training pipeline:
-
-1. **Data Loading**: OULAD dataset ingestion
-2. **Feature Engineering**: Extract engagement metrics
-3. **Preprocessing**: Scaling, encoding, sequence padding
-4. **Model Training**: BiLSTM architecture
-5. **Evaluation**: Accuracy, precision, recall metrics
-6. **Serialization**: Save model artifacts
-
----
-
-## 🚀 Future Enhancements
-
-- Real-time WebSocket notifications
-- Mobile application (React Native)
-- Advanced visualization dashboards
-- Integration with LMS platforms (Canvas, Moodle)
-- Multilingual MCII support
-- Improved model accuracy with transfer learning
-
----
-
-## 📄 License
-
-MIT License - See LICENSE file for details
-
----
-
-## 🙏 Acknowledgments
-
-- **OULAD Dataset**: Open University for learning analytics data
-- **MCII Framework**: Research by Gabriele Oettingen and Peter Gollwitzer
-- **Evidence-Based Design**: Educational psychology research
-
----
-
-## 📧 Contact
-
-For questions or feedback, please open an issue or contact the development team.
-
----
-
-**Built with ❤️ for students struggling with procrastination**
+**Live URL:** https://web-production-185b1.up.railway.app
