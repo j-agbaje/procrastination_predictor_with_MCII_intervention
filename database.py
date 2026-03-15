@@ -11,9 +11,15 @@ load_dotenv()
 # if not DATABASE_URL:
 #     raise ValueError("DATABASE_URL is not set")
 print("ENV VARS:", list(os.environ.keys()))
+# DATABASE_URL = os.environ.get("DATABASE_URL", "")
+# if not DATABASE_URL:
+#     print("WARNING: DATABASE_URL is not set")
+#     raise ValueError("DATABASE_URL is not set")
+
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+if DATABASE_URL.startswith("mysql://"):
+    DATABASE_URL = DATABASE_URL.replace("mysql://", "mysql+pymysql://", 1)
 if not DATABASE_URL:
-    print("WARNING: DATABASE_URL is not set")
     raise ValueError("DATABASE_URL is not set")
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=3600, echo=False)
