@@ -6,7 +6,7 @@ https://web-production-185b1.up.railway.app
 
 ## Demo Video
 
-https://drive.google.com/drive/folders/1UvOCR0r9ar3CJjasf_pjP_13DSkZcWwE?usp=sharing
+https://drive.google.com/file/d/18NolRuGXxa4hUc4FyRwRaje1omYAxHOf/view?usp=sharing
 
 ## Testing and Evaluation
 
