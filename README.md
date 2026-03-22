@@ -45,7 +45,8 @@ ProActive is a full-stack web application that predicts the early risk of studen
 | BiLSTM 3-window (cold start) | 86.03% | 0.8569 | 0.9043 |
 | SVM baseline | 68.16% | 0.6911 | 0.8231 |
 
-Benchmarks from Memon et al. (2020): ANN 83.5%, XGBoost 87.0%.
+Benchmarks from Memon et al. (2020): ANN 83.5%
+Benchmarks from Mohammad & Gummadi (2025)
 
 ---
 

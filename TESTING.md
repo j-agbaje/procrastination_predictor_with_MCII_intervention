@@ -344,7 +344,7 @@ AUC-ROC measures how well the model separates the two classes across all possibl
 
 | Model | Accuracy | F1 | AUC-ROC | Memon 2020 benchmark | Status |
 |---|---|---|---|---|---|
-| BiLSTM 7-window (main) | 89.37% | 0.8874 | 0.9430  | ANN 83.5% / XGBoost 87.0% | EXCEEDS |
+| BiLSTM 7-window (main) | 89.37% | 0.8874 | 0.9430  | ANN 83.5% | EXCEEDS |
 | BiLSTM 3-window (cold start) | 86.03% | 0.8569 | 0.9043 | ANN 83.5% | EXCEEDS |
 | SVM baseline | 68.16% | 0.6911 | 0.8231 | — | Baseline only |
 
