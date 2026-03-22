@@ -10,11 +10,11 @@ https://drive.google.com/file/d/18NolRuGXxa4hUc4FyRwRaje1omYAxHOf/view?usp=shari
 
 ## Testing and Evaluation
 
-See [TESTING.md](TESTING.md) for the full testing report, including functional testing results, performance benchmarks, cross-browser testing, data variation testing, ML model evaluation, analysis, discussion, and recommendations.
+See [TESTING.md](TESTING.md) for the full testing report and deployment strategy, including functional testing results, performance benchmarks, cross-browser testing, data variation testing, ML model evaluation, analysis, discussion, and recommendations.
 
 ## Project Overview
 
-ProActive is a full-stack web application that predicts student procrastination using a Bidirectional LSTM neural network with Bahdanau attention, and delivers MCII (Mental Contrasting with Implementation Intentions) interventions through an AI coaching chatbot powered by Anthropic Claude. It supports both individual students managing their own productivity and institutional use where an admin monitors a cohort of students.
+ProActive is a full-stack web application that predicts the early risk of student  procrastination using a Bidirectional LSTM neural network with Bahdanau attention, and delivers MCII (Mental Contrasting with Implementation Intentions) interventions through an AI coaching chatbot powered by Anthropic Claude. It supports both individual students managing their own productivity and institutional use where an admin monitors and engages with a cohort of students.
 
 ### Core Features
 
@@ -33,7 +33,7 @@ ProActive is a full-stack web application that predicts student procrastination 
 | Database | MySQL |
 | ML | TensorFlow / Keras — BiLSTM + Bahdanau Attention |
 | AI chatbot | Anthropic Claude (claude-haiku-4-5-20251001) |
-| Frontend | Jinja2 + Tailwind CSS |
+| Frontend | HTML + Jinja2 + Tailwind CSS |
 | Scheduler | APScheduler |
 | Deployment | Railway |
 
@@ -41,7 +41,7 @@ ProActive is a full-stack web application that predicts student procrastination 
 
 | Model | Accuracy | F1 | AUC-ROC |
 |---|---|---|---|
-| BiLSTM 7-window (main) | 88.74% | 0.8874 | 0.9428 |
+| BiLSTM 7-window (main) | 89.37% | 0.8874 | 0.9430 |
 | BiLSTM 3-window (cold start) | 86.03% | 0.8569 | 0.9043 |
 | SVM baseline | 68.16% | 0.6911 | 0.8231 |
 
@@ -60,7 +60,7 @@ Benchmarks from Memon et al. (2020): ANN 83.5%, XGBoost 87.0%.
 ### Step 1 — Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/proactive.git
+git clone https://github.com/j-agbaje/procrastination_predictor_with_MCII_intervention.git
 cd proactive
 ```
 
