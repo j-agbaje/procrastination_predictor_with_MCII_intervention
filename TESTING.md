@@ -344,8 +344,8 @@ AUC-ROC measures how well the model separates the two classes across all possibl
 
 | Model | Accuracy | F1 | AUC-ROC | Memon 2020 benchmark | Status |
 |---|---|---|---|---|---|
-| BiLSTM 7-window (main) | 89.37% | 0.8874 | 0.9430  | ANN 83.5% | EXCEEDS |
-| BiLSTM 3-window (cold start) | 86.03% | 0.8569 | 0.9043 | ANN 83.5% | EXCEEDS |
+| BiLSTM 7-window (main) | 89.37% | 0.8930 | 0.9430  | ANN 83.5% | EXCEEDS |
+| BiLSTM 3-window (cold start) | 85.31% | 0.8514 | 0.9022 | ANN 83.5% | EXCEEDS |
 | SVM baseline | 68.16% | 0.6911 | 0.8231 | — | Baseline only |
 
 The gap between the BiLSTM at 89.37% and the SVM baseline at 68.16% — more than 20 percentage points on the same data — shows how much the sequential architecture matters. The SVM sees the same weekly bundle features but collapses the history into a flat vector. It cannot learn that a student who starts slowly in week 1 but picks up in week 3 has a different risk profile from one who is fast early and then stops. The BiLSTM reads the sequence in both forward and backward directions, and the Bahdanau attention layer learns to weight the most important weeks more heavily for each individual prediction.
