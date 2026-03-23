@@ -342,11 +342,13 @@ AUC-ROC measures how well the model separates the two classes across all possibl
 **Optimiser:** Adam lr=0.001 | **Early stopping:** val_AUC patience=50
 **Class weights:** Balanced for 4,511 on-time vs 1,991 late samples
 
-| Model | Accuracy | F1 | AUC-ROC | Memon 2020 benchmark | Status |
-|---|---|---|---|---|---|
-| BiLSTM 7-window (main) | 89.37% | 0.8930 | 0.9430  | ANN 83.5% | EXCEEDS |
-| BiLSTM 3-window (cold start) | 85.31% | 0.8514 | 0.9022 | ANN 83.5% | EXCEEDS |
-| SVM baseline | 68.16% | 0.6911 | 0.8231 | — | Baseline only |
+| Model | Accuracy | AUC-ROC | F1 Score | Dataset | Task |
+|-------|----------|---------|----------|---------|------|
+| BiLSTM 7-window | 89.37% | 94.30% | 89.30% | OULAD 32,593 | Procrastination (Late submission prediction) |
+| BiLSTM 3-window | 85.31% | 90.22% | 85.14% | OULAD 32,593 | Procrastination (Late submission prediction) |
+| SVM baseline | 68.16% | 82.31% | 69.11% | OULAD 32,593 | Procrastination (Late submission prediction) |
+| Imhof et al. (2022) | 70% | N/R | N/R | 134 students, LMS logs | Late submission prediction |
+| Memon et al. (2020) ANN | 83.50% | N/R | N/R | OULAD 32,593 | Procrastination composite label |
 
 The gap between the BiLSTM at 89.37% and the SVM baseline at 68.16% — more than 20 percentage points on the same data — shows how much the sequential architecture matters. The SVM sees the same weekly bundle features but collapses the history into a flat vector. It cannot learn that a student who starts slowly in week 1 but picks up in week 3 has a different risk profile from one who is fast early and then stops. The BiLSTM reads the sequence in both forward and backward directions, and the Bahdanau attention layer learns to weight the most important weeks more heavily for each individual prediction.
 
