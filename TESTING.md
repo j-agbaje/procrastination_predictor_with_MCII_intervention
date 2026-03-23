@@ -415,3 +415,6 @@ The unanswered question is the one the pilot study will address: does an MCII in
 | Medium | Mobile application (React Native) | Students primarily use phones |
 | Low | Self-hosted Tailwind build | Removes CDN dependency, improves Lighthouse score by ~5-10 points |
 | Low | Longitudinal study across a full semester | Measures whether interventions reduce late submissions over time |
+
+
+“I acknowledge the use of AI tools to aid in the structuring and writing of the report in this assessment. The output was reviewed, modified, and critically evaluated before submission. None of the results, however, are fabricated with AI. in this assessment. The output was reviewed, modified, and critically evaluated before submission.”
