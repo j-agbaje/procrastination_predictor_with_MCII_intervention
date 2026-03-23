@@ -11,7 +11,7 @@
 The proposal set out four objectives. This report tests whether the deployed system meets them.
 
 - **Objective 1:** Conduct a systematic literature review and assess existing models before building.
-- **Objective 2:** Pre-train a Bi-LSTM on the OULAD dataset (32,000+ students) and adapt it to local student data.
+- **Objective 2:** Train a Bi-LSTM on the OULAD dataset (32,000+ students).
 - **Objective 3:** Deploy a web platform integrating the LSTM with attention mechanism and MCII-based interventions.
 - **Objective 4:** Conduct pilot testing with 5-10 students and collect initial behavioural data as proof of concept.
 
