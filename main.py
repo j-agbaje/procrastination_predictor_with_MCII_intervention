@@ -191,7 +191,7 @@ def create_initial_bundle(student_id: int, db: Session) -> Optional[WeeklyBundle
 def collate_weekly_bundles(db: Session) -> None:
     """
     Close the current open bundle for each student, compute snapshot metrics, and
-    provision the next week's bundle. Intended for use by a Sunday night scheduler.
+    provision the next week's bundle. Intended for use by a Sunday night scheduler. Used by the admin dashboard
     """
     students = db.query(Student).all()
 
@@ -640,13 +640,16 @@ def nightly_inference() -> None:
     """Run prediction for all students; create Prediction rows and optional MCII interventions. Idempotent per student per day."""
     db = SessionLocal()
     try:
+        # get date 
         today = date.today()
+        # get all students
         students = db.query(Student).all()
         logger.info("nightly_inference started, total students=%s", len(students))
         written = 0
         errors = 0
         for student in students:
             try:
+                # confirm student exists
                 existing = (
                     db.query(Prediction)
                     .filter(
@@ -657,10 +660,12 @@ def nightly_inference() -> None:
                 )
                 if existing:
                     continue
+                # compute prediction for existing student
                 result = compute_prediction(student, db)
                 if result is None:
                     logger.warning("compute_prediction returned None for student_id=%s", student.student_id)
                     continue
+                # save prediction to database for every student 
                 pred = Prediction(
                     student_id=student.student_id,
                     bundle_id=result.get("bundle_id"),
@@ -673,8 +678,10 @@ def nightly_inference() -> None:
                 )
                 db.add(pred)
                 db.flush()
+                # update risk level, days active for every student
                 student.current_risk_level = result["risk_level"]
                 student.days_active = (student.days_active or 0) + 1
+                # generate auto mcii or mcii tip if high 
                 if result["risk_level"] == "high":
                     cutoff = datetime.now() - timedelta(hours=24)
                     recent_mcii = (
@@ -696,6 +703,7 @@ def nightly_inference() -> None:
                         db.add(intervention)
                 db.commit()
                 written += 1
+                # error if nightly inference failed 
             except Exception as exc:
                 db.rollback()
                 errors += 1
@@ -1040,17 +1048,6 @@ async def mcii_page(
         .order_by(MCIIIntervention.delivery_time.asc())
         .all()
     )
-
-    # cutoff = datetime.now() - timedelta(hours=48)
-    # recent_intervention = (
-    #     db.query(MCIIIntervention)
-    #     .filter(
-    #         MCIIIntervention.student_id == current_user["user_id"],
-    #         MCIIIntervention.delivery_time >= cutoff
-    #     )
-    #     .first()
-    # )
-    # is_fresh = recent_intervention is None
 
     if student.current_risk_level == "high":
         greeting = "Hey — I can see things are a bit intense right now. Let's talk about what's going on and build a plan together."
