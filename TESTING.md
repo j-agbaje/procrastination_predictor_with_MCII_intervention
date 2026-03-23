@@ -344,9 +344,9 @@ AUC-ROC measures how well the model separates the two classes across all possibl
 
 | Model | Accuracy | AUC-ROC | F1 Score | Dataset | Task |
 |-------|----------|---------|----------|---------|------|
-| BiLSTM 7-window | 89.37% | 94.30% | 89.30% | OULAD 32,593 | Procrastination (Late submission prediction) |
-| BiLSTM 3-window | 85.31% | 90.22% | 85.14% | OULAD 32,593 | Procrastination (Late submission prediction) |
-| SVM baseline | 68.16% | 82.31% | 69.11% | OULAD 32,593 | Procrastination (Late submission prediction) |
+| BiLSTM 7-window | 89.37% | 0.9430 | 0.8930 | OULAD 32,593 | Procrastination (Late submission prediction) |
+| BiLSTM 3-window | 85.31% | 0.9022 | 0.8514 | OULAD 32,593 | Procrastination (Late submission prediction) |
+| SVM baseline | 68.16% | 0.8231 | 0.6911 | OULAD 32,593 | Procrastination (Late submission prediction) |
 | Imhof et al. (2022) | 70% | N/R | N/R | 134 students, LMS logs | Late submission prediction |
 | Memon et al. (2020) ANN | 83.50% | N/R | N/R | OULAD 32,593 | Procrastination composite label |
 
