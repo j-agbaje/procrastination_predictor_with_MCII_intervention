@@ -20,24 +20,19 @@ import pickle
 import random
 import uuid
 import logging
-
 from anthropic import Anthropic
 from apscheduler.schedulers.background import BackgroundScheduler
-
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
 import uvicorn
 from schemas import SignupRequest, LoginRequest, TaskCreate, TaskUpdate, ProfileUpdate, MCIIMessage, PredictionRequest, PredictionResponse
 from dotenv import load_dotenv
-
-
 load_dotenv(override=False)
 from database import Base, engine, SessionLocal, get_db
 from models import Student, Admin, Task, WeeklyBundle, Prediction, MCIIIntervention, BehavioralLog, Survey
 import tensorflow as tf
 from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
-
 
 # ── Directory configuration 
 BASE_DIR    = Path(__file__).resolve().parent
