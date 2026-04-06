@@ -27,7 +27,7 @@ import tensorflow as tf
 import uvicorn
 from schemas import SignupRequest, LoginRequest, TaskCreate, TaskUpdate, ProfileUpdate, MCIIMessage, PredictionRequest, PredictionResponse
 from dotenv import load_dotenv
-load_dotenv(override=False)
+load_dotenv(override = False)
 from database import Base, engine, SessionLocal, get_db
 from models import Student, Admin, Task, WeeklyBundle, Prediction, MCIIIntervention, BehavioralLog, Survey
 import tensorflow as tf
@@ -35,35 +35,35 @@ from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 
 # ── Directory configuration 
-BASE_DIR    = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_DIR = BASE_DIR / "templates"
-STATIC_DIR  = BASE_DIR / "static"
-MODEL_DIR   = BASE_DIR / "models" / "saved_models"
+STATIC_DIR = BASE_DIR / "static"
+MODEL_DIR = BASE_DIR / "models" / "saved_models"
 
-templates = Jinja2Templates(directory=TEMPLATE_DIR) # templates directory
+templates = Jinja2Templates(directory = TEMPLATE_DIR) # templates directory
 logger = logging.getLogger(__name__)
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 if not ANTHROPIC_API_KEY:
     raise ValueError("ANTHROPIC_API_KEY is not set")
 
-anthropic_client = Anthropic(api_key=ANTHROPIC_API_KEY)
+anthropic_client = Anthropic(api_key = ANTHROPIC_API_KEY)
 
-scheduler = BackgroundScheduler(timezone="UTC")
+scheduler = BackgroundScheduler(timezone = "UTC")
 
 # attention
 class BahdanauAttention(tf.keras.layers.Layer):
     def __init__(self, units, **kwargs):
         super(BahdanauAttention, self).__init__(**kwargs)
         self.units = units
-        self.W1 = tf.keras.layers.Dense(units, use_bias=False)
-        self.V = tf.keras.layers.Dense(1, use_bias=False)
+        self.W1 = tf.keras.layers.Dense(units, use_bias = False)
+        self.V = tf.keras.layers.Dense(1, use_bias = False)
 
     def call(self, encoder_output):
         score = self.V(tf.nn.tanh(self.W1(encoder_output)))
-        attention_weights = tf.nn.softmax(score, axis=1)
+        attention_weights = tf.nn.softmax(score, axis = 1)
         context_vector = attention_weights * encoder_output
-        context_vector = tf.reduce_sum(context_vector, axis=1)
+        context_vector = tf.reduce_sum(context_vector, axis = 1)
         return context_vector, attention_weights
 
     def get_config(self):
@@ -86,13 +86,13 @@ try:
 
     model_3window = tf.keras.models.load_model(
         MODEL_DIR / "bilstm_3window.h5",
-        custom_objects=custom_objects,
-        compile=False
+        custom_objects = custom_objects,
+        compile = False
     )
     model_7window = tf.keras.models.load_model(
         MODEL_DIR / "bilstm_7window.h5",
-        custom_objects=custom_objects,
-        compile=False
+        custom_objects = custom_objects,
+        compile = False
     )
     with open(MODEL_DIR / "scaler_3window.pkl", "rb") as f:
         scaler_3window = pickle.load(f)
@@ -114,28 +114,28 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-# ── Auth helpers 
+# Auth helpers 
 
 def require_login(request: Request) -> dict:
     user = request.session.get("user")
     if not user:
-        raise HTTPException(status_code=status.HTTP_302_FOUND, headers={"Location": "/login"})
+        raise HTTPException(status_code = status.HTTP_302_FOUND, headers = {"Location": "/login"})
     return user
 
 def require_student(request: Request) -> dict:
     user = require_login(request)
     if user["role"] != "student":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Student access only")
+        raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = "Student access only")
     return user
 
 def require_admin(request: Request) -> dict:
     user = require_login(request)
     if user["role"] != "admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access only")
+        raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = "Admin access only")
     return user
 
 
-# ── Bundle utilities and inference helper 
+# Bundle utilities and inference helper 
 
 
 def create_initial_bundle(student_id: int, db: Session) -> Optional[WeeklyBundle]:
@@ -144,8 +144,8 @@ def create_initial_bundle(student_id: int, db: Session) -> Optional[WeeklyBundle
     Ensures idempotency so repeated calls in the same week do not duplicate bundles.
     """
     today = date.today()
-    start_of_week = today - timedelta(days=today.weekday())
-    end_of_week = start_of_week + timedelta(days=6)
+    start_of_week = today - timedelta(days = today.weekday())
+    end_of_week = start_of_week + timedelta(days = 6)
     week_number = today.isocalendar().week
 
     existing = (
@@ -160,16 +160,16 @@ def create_initial_bundle(student_id: int, db: Session) -> Optional[WeeklyBundle
         return existing
 
     bundle = WeeklyBundle(
-        student_id=student_id,
-        week_number=week_number,
-        start_date=start_of_week,
-        end_date=end_of_week,
-        tasks_total=0,
-        tasks_completed=0,
-        tasks_late=0,
-        completion_rate=0.0,
-        submitted_late=0,
-        is_closed=0,
+        student_id = student_id,
+        week_number = week_number,
+        start_date = start_of_week,
+        end_date = end_of_week,
+        tasks_total = 0,
+        tasks_completed = 0,
+        tasks_late = 0,
+        completion_rate = 0.0,
+        submitted_late = 0,
+        is_closed = 0,
     )
 
     try:
@@ -234,8 +234,8 @@ def collate_weekly_bundles(db: Session) -> None:
             open_bundle.is_closed = 1
             open_bundle.closed_at = datetime.now()
 
-            next_monday = open_bundle.start_date + timedelta(days=7)
-            next_sunday = next_monday + timedelta(days=6)
+            next_monday = open_bundle.start_date + timedelta(days = 7)
+            next_sunday = next_monday + timedelta(days = 6)
             next_week_number = next_monday.isocalendar().week
 
             existing_next = (
@@ -248,16 +248,16 @@ def collate_weekly_bundles(db: Session) -> None:
             )
             if not existing_next:
                 next_bundle = WeeklyBundle(
-                    student_id=student.student_id,
-                    week_number=next_week_number,
-                    start_date=next_monday,
-                    end_date=next_sunday,
-                    tasks_total=0,
-                    tasks_completed=0,
-                    tasks_late=0,
-                    completion_rate=0.0,
-                    submitted_late=0,
-                    is_closed=0,
+                    student_id = student.student_id,
+                    week_number = next_week_number,
+                    start_date = next_monday,
+                    end_date = next_sunday,
+                    tasks_total = 0,
+                    tasks_completed = 0,
+                    tasks_late = 0,
+                    completion_rate = 0.0,
+                    submitted_late = 0,
+                    is_closed = 0,
                 )
                 db.add(next_bundle)
 
@@ -317,14 +317,14 @@ def assign_tasks_to_bundles(db: Session) -> None:
     logger.info("Assigned %s tasks to bundles", counter)
 
 
-# ── Inference helper 
+#  Inference helper 
 
 def _bundle_to_features(bundle: WeeklyBundle, today: date) -> list[float]:
     """
     Convert a closed WeeklyBundle row into the 5-feature vector.
     For a closed bundle: days_until_deadline is negative if tasks ran late.
     """
-    days_until_deadline  = (bundle.end_date - today).days
+    days_until_deadline = (bundle.end_date - today).days
     # For closed bundles we use the end_date vs today; negative = overdue
     return [
         float(days_until_deadline),
@@ -345,7 +345,7 @@ def compute_prediction(student: Student, db: Session) -> Optional[dict]:
 
     today = date.today()
 
-    # ── 1. Count closed bundles to decide which model to use 
+    #  Count closed bundles to decide which model to use 
     closed_bundles = (
         db.query(WeeklyBundle)
         .filter(WeeklyBundle.student_id == student.student_id, WeeklyBundle.is_closed == 1)
@@ -355,17 +355,17 @@ def compute_prediction(student: Student, db: Session) -> Optional[dict]:
     num_closed = len(closed_bundles)
     # Use normal 
     if num_closed >= 7 and model_7window:
-        model      = model_7window
-        scaler     = scaler_7window
-        window     = 7
+        model = model_7window
+        scaler = scaler_7window
+        window = 7
         model_name = "7window"
     else:
-        model      = model_3window
-        scaler     = scaler_3window
-        window     = 3
+        model = model_3window
+        scaler = scaler_3window
+        window = 3
         model_name = "3window"
 
-    # ── 2. Get the current (live) bundle 
+    # Get the current (live) bundle 
     current_bundle = (
         db.query(WeeklyBundle)
         .filter(WeeklyBundle.student_id == student.student_id, WeeklyBundle.is_closed == 0)
@@ -376,13 +376,13 @@ def compute_prediction(student: Student, db: Session) -> Optional[dict]:
     if not current_bundle:
         return None  # no active bundle yet — student hasn't set up their week
 
-    # ── 3. Compute live features for current bundle (Row 7 / Row 3) 
+    # Compute live features for current bundle (Row 7 / Row 3) 
     tasks_in_bundle = (
         db.query(Task)
         .filter(Task.bundle_id == current_bundle.bundle_id)
         .all()
     )
-    tasks_total     = len(tasks_in_bundle)
+    tasks_total = len(tasks_in_bundle)
     tasks_completed = sum(1 for t in tasks_in_bundle if t.status == 'completed')
     completion_rate = (tasks_completed / tasks_total) if tasks_total > 0 else 0.0
 
@@ -419,7 +419,7 @@ def compute_prediction(student: Student, db: Session) -> Optional[dict]:
         float(overdue_count),
     ]
 
-    # ── 4. Build feature sequence, prepending priors for gaps
+    # Build feature sequence, prepending priors for gaps
     # We need (window - 1) historical rows + 1 live row = window total
     real_history_needed = window - 1
     real_rows = []
@@ -451,8 +451,8 @@ def compute_prediction(student: Student, db: Session) -> Optional[dict]:
 
     # Fill remaining slots with prior profile synthetic rows
     rows_needed = real_history_needed - len(real_rows)
-    prior_key   = student.prior_profile if student.prior_profile else 'mixed'
-    prior_rows  = prior_profiles.get(prior_key, [])[:rows_needed] if rows_needed > 0 else []
+    prior_key = student.prior_profile if student.prior_profile else 'mixed'
+    prior_rows = prior_profiles.get(prior_key, [])[:rows_needed] if rows_needed > 0 else []
 
     sequence = prior_rows + real_rows + [live_features]
 
@@ -460,15 +460,15 @@ def compute_prediction(student: Student, db: Session) -> Optional[dict]:
         # Safety check — should not happen with correct prior_profiles.json
         return None
 
-    # ── 5. Scale 
-    seq_array = np.array(sequence, dtype=np.float32)  # (window, 5)
+    # Scale 
+    seq_array = np.array(sequence, dtype = np.float32)  # (window, 5)
     seq_scaled = scaler.transform(seq_array).reshape(1, window, 5)
 
-    # ── 6. Inference 
-    output = model.predict(seq_scaled, verbose=0)
+    # Inference 
+    output = model.predict(seq_scaled, verbose = 0)
     risk_score = float(output[0][0])  # sigmoid output — probability of late submission
 
-    # ── 7. Map score to risk level 
+    # Map score to risk level 
     if risk_score < 0.40:
         risk_level = "low"
     elif risk_score < 0.65:
@@ -591,9 +591,9 @@ def generate_mcii_tip(risk_level: str, confidence_score: float) -> str:
 
     try:
         response = anthropic_client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=150,
-            messages=[
+            model = "claude-haiku-4-5-20251001",
+            max_tokens = 150,
+            messages = [
                 {
                     "role": "user",
                     "content": prompt,
@@ -629,7 +629,7 @@ def generate_mcii_tip(risk_level: str, confidence_score: float) -> str:
     )
 
 
-# ── Scheduler jobs (use SessionLocal inside jobs, not get_db)
+# Scheduler jobs (use SessionLocal inside jobs, not get_db)
 
 def nightly_inference() -> None:
     """Run prediction for all students; create Prediction rows and optional MCII interventions. Idempotent per student per day."""
@@ -662,14 +662,14 @@ def nightly_inference() -> None:
                     continue
                 # save prediction to database for every student 
                 pred = Prediction(
-                    student_id=student.student_id,
-                    bundle_id=result.get("bundle_id"),
-                    prediction_date=today,
-                    model_used=result["model_used"],
-                    risk_level=result["risk_level"],
-                    confidence_score=result["confidence_score"],
-                    attention_weights_json=None,
-                    features_json=result.get("features_json"),
+                    student_id = student.student_id,
+                    bundle_id = result.get("bundle_id"),
+                    prediction_date = today,
+                    model_used = result["model_used"],
+                    risk_level = result["risk_level"],
+                    confidence_score = result["confidence_score"],
+                    attention_weights_json = None,
+                    features_json = result.get("features_json"),
                 )
                 db.add(pred)
                 db.flush()
@@ -678,7 +678,7 @@ def nightly_inference() -> None:
                 student.days_active = (student.days_active or 0) + 1
                 # generate auto mcii or mcii tip if high 
                 if result["risk_level"] == "high":
-                    cutoff = datetime.now() - timedelta(hours=24)
+                    cutoff = datetime.now() - timedelta(hours = 24)
                     recent_mcii = (
                         db.query(MCIIIntervention)
                         .filter(
@@ -690,10 +690,10 @@ def nightly_inference() -> None:
                     if not recent_mcii:
                         tip_text = generate_mcii_tip(result["risk_level"], result["confidence_score"])
                         intervention = MCIIIntervention(
-                            prediction_id=pred.prediction_id,
-                            student_id=student.student_id,
-                            prompt_text=tip_text,
-                            delivery_time=datetime.now(),
+                            prediction_id = pred.prediction_id,
+                            student_id = student.student_id,
+                            prompt_text = tip_text,
+                            delivery_time = datetime.now(),
                         )
                         db.add(intervention)
                 db.commit()
@@ -724,29 +724,29 @@ def _run_assign_tasks_to_bundles() -> None:
         db.close()
 
 
-# ── FastAPI App 
+# FastAPI App 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # startup
-    scheduler.add_job(_run_collate_weekly_bundles, "cron", day_of_week="sun", hour=23, minute=59, timezone="UTC")
-    scheduler.add_job(nightly_inference, "cron", hour=0, minute=5, timezone="UTC")
-    scheduler.add_job(_run_assign_tasks_to_bundles, "cron", hour=0, minute=10, timezone="UTC")
+    scheduler.add_job(_run_collate_weekly_bundles, "cron", day_of_week = "sun", hour = 23, minute = 59, timezone = "UTC")
+    scheduler.add_job(nightly_inference, "cron", hour = 0, minute = 5, timezone = "UTC")
+    scheduler.add_job(_run_assign_tasks_to_bundles, "cron", hour = 0, minute = 10, timezone = "UTC")
     scheduler.start()
     yield
     # shutdown
     scheduler.shutdown()
 
-app = FastAPI(title="ProActive", lifespan=lifespan)
+app = FastAPI(title = "ProActive", lifespan = lifespan)
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key=os.environ.get("SECRET_KEY", "dev-secret-change-in-production"),
-    max_age=86400
+    secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-in-production"),
+    max_age = 86400
 )
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.add_middleware(CORSMiddleware, allow_origins = ["*"], allow_methods = ["*"], allow_headers = ["*"])
+app.mount("/static", StaticFiles(directory = STATIC_DIR), name = "static")
 # upload_dir = BASE_DIR / "media" / "profile_pics"
-app.mount("/media", StaticFiles(directory=BASE_DIR / "media"), name="media")
+app.mount("/media", StaticFiles(directory = BASE_DIR / "media"), name = "media")
 
 
 
@@ -757,31 +757,38 @@ def run_scheduler_manual(
     """Manual trigger for nightly inference (admin only, for testing)."""
     nightly_inference()
     return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={"message": "Scheduler run complete", "timestamp": datetime.now().isoformat()},
+        status_code = status.HTTP_200_OK,
+        content = {"message": "Scheduler run complete", "timestamp": datetime.now().isoformat()},
     )
 
 
-# ── Page Routes 
+#  Page Routes 
 
 # login page 
-@app.get("/", response_class=HTMLResponse)
-@app.get("/login", response_class=HTMLResponse)
+@app.get("/", response_class = HTMLResponse)
+@app.get("/login", response_class = HTMLResponse)
 async def login_page(request: Request): # request: Request required by Jinja 2 template rendering
     # redirect to admin dashboard if user is admin else redirect to student dashboard
     if request.session.get("user"):
         role = request.session["user"]["role"]
-        return RedirectResponse(url="/admin/dashboard" if role == "admin" else "/student/dashboard")
+        return RedirectResponse(url = "/admin/dashboard" if role == "admin" else "/student/dashboard")
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-#  signup page 
-@app.get("/signup", response_class=HTMLResponse)
+# signup page 
+@app.get("/signup", response_class = HTMLResponse)
 async def signup_page(request: Request):
     return templates.TemplateResponse("signup.html", {"request": request})
 
+
+@app.get("/privacy", response_class = HTMLResponse)
+async def privacy_policy_page(request: Request):
+    """Serve the EULA and privacy policy for ProActive (public, no auth)."""
+    return templates.TemplateResponse("privacy.html", {"request": request})
+
+
 # student_dashboard
-@app.get("/student/dashboard", response_class=HTMLResponse)
+@app.get("/student/dashboard", response_class = HTMLResponse)
 async def student_dashboard(
     request: Request,
     current_user: dict = Depends(require_student),
@@ -830,7 +837,7 @@ async def student_dashboard(
 
 
 # student task manager 
-@app.get("/student/tasks", response_class=HTMLResponse)
+@app.get("/student/tasks", response_class = HTMLResponse)
 async def tasks_page(
     request: Request,
     filter_status: Optional[str] = None,
@@ -852,7 +859,7 @@ async def tasks_page(
     })
 
 # student profile page 
-@app.get("/student/profile", response_class=HTMLResponse)
+@app.get("/student/profile", response_class = HTMLResponse)
 async def profile_page(
     request: Request,
     current_user: dict = Depends(require_student),
@@ -905,8 +912,8 @@ async def update_profile(
 
     if not student:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Student record not found for profile update",
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail = "Student record not found for profile update",
         )
 
     name_clean = (full_name or "").strip()
@@ -940,7 +947,7 @@ async def update_profile(
             else:
                 ext = allowed_types[profile_pic.content_type]
                 upload_dir = BASE_DIR / "media" / "profile_pics"
-                upload_dir.mkdir(parents=True, exist_ok=True)
+                upload_dir.mkdir(parents = True, exist_ok = True)
                 filename = f"{student.student_id}_{uuid.uuid4().hex[:8]}{ext}"
                 file_path = upload_dir / filename
                 with open(file_path, "wb") as f:
@@ -972,7 +979,7 @@ async def update_profile(
                 "form_phone": phone_clean,
                 "form_bio": bio_clean,
             },
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code = status.HTTP_400_BAD_REQUEST,
         )
 
     old_profile_pic = student.profile_pic
@@ -1009,7 +1016,7 @@ async def update_profile(
                 "error": "Could not update profile. Please try again.",
                 "success": success,
             },
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
     if image_path and old_profile_pic:
@@ -1023,13 +1030,13 @@ async def update_profile(
 
     request.session["flash_success"] = "Profile updated successfully"
     return RedirectResponse(
-        url="/student/profile",
-        status_code=status.HTTP_303_SEE_OTHER,
+        url = "/student/profile",
+        status_code = status.HTTP_303_SEE_OTHER,
     )
 
 
 #  mcii chat endpoint 
-@app.get("/student/mcii", response_class=HTMLResponse)
+@app.get("/student/mcii", response_class = HTMLResponse)
 async def mcii_page(
     request: Request,
     current_user: dict = Depends(require_student),
@@ -1067,7 +1074,7 @@ async def mcii_chat(
     db: Session = Depends(get_db),
 ):
     if not message.message or not message.message.strip():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Message cannot be empty")
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Message cannot be empty")
     
     student_id = current_user["user_id"]
 
@@ -1156,7 +1163,7 @@ async def mcii_chat(
     )
 
     # Load last 10 exchanges for conversation history
-    cutoff = datetime.now() - timedelta(hours=48)
+    cutoff = datetime.now() - timedelta(hours = 48)
     history = (
         db.query(MCIIIntervention)
         .filter(
@@ -1181,10 +1188,10 @@ async def mcii_chat(
 
     try:
         response = anthropic_client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=1000,
-            system=system_prompt,
-            messages=messages,
+            model = "claude-haiku-4-5-20251001",
+            max_tokens = 1000,
+            system = system_prompt,
+            messages = messages,
         )
         claude_reply = response.content[0].text
     except Exception as exc:
@@ -1194,34 +1201,34 @@ async def mcii_chat(
         
         if "RateLimit" in err_name:
             raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="AI service temporarily unavailable. Please try again shortly.",
+                status_code = status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail = "AI service temporarily unavailable. Please try again shortly.",
             )
         if "credit" in error_str.lower() or "billing" in error_str.lower() or "quota" in error_str.lower():
             raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="AI coach is currently unavailable. Please contact your administrator.",
+                status_code = status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail = "AI coach is currently unavailable. Please contact your administrator.",
             )
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="AI coach is temporarily unavailable. Please try again.",
+            status_code = status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail = "AI coach is temporarily unavailable. Please try again.",
         )
 
 
     intervention = MCIIIntervention(
-        prediction_id=latest_prediction.prediction_id if latest_prediction else None,
-        student_id=student_id,
-        prompt_text=message.message,
-        user_response=claude_reply,
-        delivery_time=datetime.now(),
+        prediction_id = latest_prediction.prediction_id if latest_prediction else None,
+        student_id = student_id,
+        prompt_text = message.message,
+        user_response = claude_reply,
+        delivery_time = datetime.now(),
     )
     db.add(intervention)
     db.commit()
     db.refresh(intervention)
 
     return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={"response": claude_reply, "intervention_id": intervention.intervention_id},
+        status_code = status.HTTP_200_OK,
+        content = {"response": claude_reply, "intervention_id": intervention.intervention_id},
     )
 
 
@@ -1233,9 +1240,9 @@ def get_student_trend(
 ):
     """Return last 14 days of predictions, one per day (latest only); 403 if not own student. Skips days with no prediction."""
     if current_user["user_id"] != student_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+        raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = "Forbidden")
     today = date.today()
-    start = today - timedelta(days=14)
+    start = today - timedelta(days = 14)
     rows = (
         db.query(Prediction)
         .filter(
@@ -1253,8 +1260,8 @@ def get_student_trend(
     sorted_dates = sorted(by_date.keys())
     if len(sorted_dates) < 2:
         return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
+            status_code = status.HTTP_200_OK,
+            content = {
                 "labels": [],
                 "scores": [],
                 "risk_levels": [],
@@ -1281,8 +1288,8 @@ def get_student_trend(
         trend = "stable"
     trend_pct = round(abs(diff) * 100, 1)
     return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={
+        status_code = status.HTTP_200_OK,
+        content = {
             "labels": labels,
             "scores": scores,
             "risk_levels": risk_levels,
@@ -1292,7 +1299,7 @@ def get_student_trend(
     )
 
 
-@app.get("/admin/dashboard", response_class=HTMLResponse)
+@app.get("/admin/dashboard", response_class = HTMLResponse)
 async def admin_dashboard(
     request: Request,
     page: int = 1,
@@ -1308,7 +1315,7 @@ async def admin_dashboard(
     cohort_base = db.query(Student).filter(Student.admin_id == admin_id)
 
     # ── Stats scoped to cohort ──
-    total_students  = cohort_base.count()
+    total_students = cohort_base.count()
     high_risk_count = cohort_base.filter(Student.current_risk_level == "high").count()
 
     cohort_student_ids = [r.student_id for r in cohort_base.with_entities(Student.student_id).all()]
@@ -1351,9 +1358,9 @@ async def admin_dashboard(
 
     total_filtered = query.count()
     flash_success = request.session.pop("flash_success", None)
-    total_pages    = max(1, (total_filtered + per_page - 1) // per_page)
-    page           = max(1, min(page, total_pages))
-    offset         = (page - 1) * per_page
+    total_pages = max(1, (total_filtered + per_page - 1) // per_page)
+    page = max(1, min(page, total_pages))
+    offset = (page - 1) * per_page
 
     students = query.order_by(Student.created_at.desc()).offset(offset).limit(per_page).all()
 
@@ -1392,7 +1399,7 @@ async def admin_dashboard(
     })
 
 
-@app.get("/admin/profile", response_class=HTMLResponse)
+@app.get("/admin/profile", response_class = HTMLResponse)
 async def admin_profile_page(
     request: Request,
     current_user: dict = Depends(require_admin),
@@ -1401,7 +1408,7 @@ async def admin_profile_page(
     """Display admin profile with invite code for sharing with students."""
     admin = db.query(Admin).filter(Admin.admin_id == current_user["user_id"]).first()
     if not admin:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin not found")
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "Admin not found")
     return templates.TemplateResponse(
         "admin_profile.html",
         {
@@ -1413,7 +1420,7 @@ async def admin_profile_page(
     )
 
 
-@app.get("/admin/create-admin", response_class=HTMLResponse)
+@app.get("/admin/create-admin", response_class = HTMLResponse)
 async def admin_create_page(
     request: Request,
     current_user: dict = Depends(require_admin),
@@ -1425,7 +1432,7 @@ async def admin_create_page(
     )
 
 
-@app.post("/admin/create-admin", response_class=HTMLResponse)
+@app.post("/admin/create-admin", response_class = HTMLResponse)
 async def admin_create_submit(
     request: Request,
     email: str = Form(...),
@@ -1450,7 +1457,7 @@ async def admin_create_submit(
         return templates.TemplateResponse(
             "admin_create.html",
             {"request": request, "current_user": current_user, "error": error},
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code = status.HTTP_400_BAD_REQUEST,
         )
     # Auto-generate 8-char alphanumeric invite code (ensure unique)
     for _ in range(10):
@@ -1461,15 +1468,15 @@ async def admin_create_submit(
         invite_code = secrets.token_hex(4).upper()[:8]
     try:
         new_admin = Admin(
-            email=email_clean,
-            password_hash=hash_password(password),
-            department=department_clean or "General",
-            invite_code=invite_code,
+            email = email_clean,
+            password_hash = hash_password(password),
+            department = department_clean or "General",
+            invite_code = invite_code,
         )
         db.add(new_admin)
         db.commit()
         request.session["flash_success"] = f"Admin account created for {email_clean}"
-        return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url = "/admin/dashboard", status_code = status.HTTP_303_SEE_OTHER)
     except Exception:
         db.rollback()
         return templates.TemplateResponse(
@@ -1479,11 +1486,11 @@ async def admin_create_submit(
                 "current_user": current_user,
                 "error": "Could not create account. Try again.",
             },
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
-@app.get("/admin/assign-task", response_class=HTMLResponse)
+@app.get("/admin/assign-task", response_class = HTMLResponse)
 async def admin_assign_task_page(
     request: Request,
     current_user: dict = Depends(require_admin),
@@ -1504,11 +1511,11 @@ async def admin_assign_task_page(
     )
 
 
-@app.post("/admin/assign-task", response_class=HTMLResponse)
+@app.post("/admin/assign-task", response_class = HTMLResponse)
 async def admin_assign_task_submit(
     request: Request,
     title: str = Form(...),
-    due_date: Optional[str] = Form(default=""),
+    due_date: Optional[str] = Form(default = ""),
     task_type: str = Form("assignment"),
     current_user: dict = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -1527,7 +1534,7 @@ async def admin_assign_task_submit(
                 "error": "You have no students in your cohort yet. Share your invite code with students to add them.",
                 "flash_success": None,
             },
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code = status.HTTP_400_BAD_REQUEST,
         )
 
     due_date_val: Optional[datetime] = None
@@ -1554,8 +1561,8 @@ async def admin_assign_task_submit(
         existing = dup_query.filter(Task.due_date.is_(None)).first()
     else:
         existing = dup_query.filter(
-            Task.due_date >= due_date_val.replace(hour=0, minute=0, second=0),
-            Task.due_date <= due_date_val.replace(hour=23, minute=59, second=59)
+            Task.due_date >= due_date_val.replace(hour = 0, minute = 0, second = 0),
+            Task.due_date <= due_date_val.replace(hour = 23, minute = 59, second = 59)
         ).first()
     if existing:
         return templates.TemplateResponse(
@@ -1567,7 +1574,7 @@ async def admin_assign_task_submit(
                 "error": "This task has already been assigned.",
                 "flash_success": None,
             },
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code = status.HTTP_400_BAD_REQUEST,
         )
 
     allowed_types = ("assignment", "quiz", "summative", "formative")
@@ -1582,19 +1589,19 @@ async def admin_assign_task_submit(
                 .first()
             )
             task = Task(
-                student_id=student.student_id,
-                bundle_id=active_bundle.bundle_id if active_bundle else None,
-                title=title.strip(),
-                due_date=due_date_val,
-                status="pending",
-                task_type=task_type_clean,
-                is_admin_assigned=True,
-                created_by_admin_id=admin_id,
+                student_id = student.student_id,
+                bundle_id = active_bundle.bundle_id if active_bundle else None,
+                title = title.strip(),
+                due_date = due_date_val,
+                status = "pending",
+                task_type = task_type_clean,
+                is_admin_assigned = True,
+                created_by_admin_id = admin_id,
             )
             db.add(task)
         db.commit()
         request.session["flash_success"] = f"Task assigned to {cohort_count} student(s)."
-        return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url = "/admin/dashboard", status_code = status.HTTP_303_SEE_OTHER)
     except Exception as exc:
         db.rollback()
         logger.exception("admin_assign_task failed: %s", exc)
@@ -1607,11 +1614,11 @@ async def admin_assign_task_submit(
                 "error": "Could not assign task. Please try again.",
                 "flash_success": None,
             },
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
-@app.get("/admin/students/{student_id}", response_class=HTMLResponse)
+@app.get("/admin/students/{student_id}", response_class = HTMLResponse)
 async def admin_student_detail(
     student_id: int,
     request: Request,
@@ -1633,11 +1640,11 @@ async def admin_student_detail(
                 "title": status.HTTP_404_NOT_FOUND,
                 "detail": "Student not found",
             },
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code = status.HTTP_404_NOT_FOUND,
         )
     # Cohort scope: only view students in this admin's cohort
     if student.admin_id != current_user["user_id"]:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "Student not found")
 
     predictions = (
         db.query(Prediction)
@@ -1715,9 +1722,9 @@ async def handle_login(
             "email":   student.email,
             "role":    "student"
         }
-        db.add(BehavioralLog(student_id=student.student_id, login_time=datetime.now()))
+        db.add(BehavioralLog(student_id = student.student_id, login_time = datetime.now()))
         db.commit()
-        return RedirectResponse(url="/student/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url = "/student/dashboard", status_code = status.HTTP_303_SEE_OTHER)
 
     admin = db.query(Admin).filter(Admin.email == email).first()
     if admin and admin.password_hash == pw_hash:
@@ -1726,12 +1733,12 @@ async def handle_login(
             "email":   admin.email,
             "role":    "admin"
         }
-        return RedirectResponse(url="/admin/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url = "/admin/dashboard", status_code = status.HTTP_303_SEE_OTHER)
 
     return templates.TemplateResponse(
         "login.html",
         {"request": request, "error": "Invalid email or password", "form_email": email},
-        status_code=status.HTTP_400_BAD_REQUEST
+        status_code = status.HTTP_400_BAD_REQUEST
     )
 
 
@@ -1741,15 +1748,15 @@ async def handle_signup(
     name:          str = Form(...),
     email:         str = Form(...),
     password:      str = Form(...),
-    prior_profile: str = Form(default="mixed"),
-    invite_code:   str = Form(default=""),
+    prior_profile: str = Form(default = "mixed"),
+    invite_code:   str = Form(default = ""),
     db: Session = Depends(get_db),
 ):
     if db.query(Student).filter(Student.email == email).first():
         return templates.TemplateResponse(
             "signup.html",
             {"request": request, "error": "An account with this email already exists"},
-            status_code=status.HTTP_400_BAD_REQUEST
+            status_code = status.HTTP_400_BAD_REQUEST
         )
 
     admin_id_val: Optional[int] = None
@@ -1759,19 +1766,19 @@ async def handle_signup(
             return templates.TemplateResponse(
                 "signup.html",
                 {"request": request, "error": "Invalid invite code. Please check the code or leave it blank to sign up without a course."},
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code = status.HTTP_400_BAD_REQUEST,
             )
         admin_id_val = admin_by_code.admin_id
 
     student = Student(
-        email=email,
-        full_name=name,
-        password_hash=hash_password(password),
-        enrollment_date=date.today(),
-        current_risk_level="low",
-        prior_profile=prior_profile,
-        days_active=0,
-        admin_id=admin_id_val,
+        email = email,
+        full_name = name,
+        password_hash = hash_password(password),
+        enrollment_date = date.today(),
+        current_risk_level = "low",
+        prior_profile = prior_profile,
+        days_active = 0,
+        admin_id = admin_id_val,
     )
     db.add(student)
     db.commit()
@@ -1784,7 +1791,7 @@ async def handle_signup(
         "email":   student.email,
         "role":    "student"
     }
-    return RedirectResponse(url="/student/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url = "/student/dashboard", status_code = status.HTTP_303_SEE_OTHER)
 
 
 @app.post("/auth/logout")
@@ -1808,7 +1815,7 @@ async def handle_logout(
             db.commit()
 
     request.session.clear()
-    return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url = "/login", status_code = status.HTTP_303_SEE_OTHER)
 
 
 # ── Task Form Handlers 
@@ -1817,8 +1824,8 @@ async def handle_logout(
 async def create_task(
     request: Request,
     title: str = Form(...),
-    due_date: Optional[str] = Form(default=""),
-    description: str = Form(default=""),
+    due_date: Optional[str] = Form(default = ""),
+    description: str = Form(default = ""),
     current_user: dict = Depends(require_student),
     db: Session = Depends(get_db),
 ):
@@ -1837,25 +1844,25 @@ async def create_task(
         .first()
     )
     task = Task(
-        student_id=current_user["user_id"],
-        bundle_id=active_bundle.bundle_id if active_bundle else None,
-        title=title,
-        description=description or None,
-        due_date=due_date_val,
-        status="pending",
-        task_type="personal",
-        is_admin_assigned=False,
+        student_id = current_user["user_id"],
+        bundle_id = active_bundle.bundle_id if active_bundle else None,
+        title = title,
+        description = description or None,
+        due_date = due_date_val,
+        status = "pending",
+        task_type = "personal",
+        is_admin_assigned = False,
     )
     db.add(task)
     db.commit()
-    return RedirectResponse(url="/student/tasks", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url = "/student/tasks", status_code = status.HTTP_303_SEE_OTHER)
 
 
 @app.post("/student/tasks/{task_id}/toggle")
 async def toggle_task(
     task_id:     int,
     request:     Request,
-    current_user: dict  = Depends(require_student),
+    current_user: dict = Depends(require_student),
     db: Session = Depends(get_db)
 ):
     task = db.query(Task).filter(
@@ -1873,14 +1880,14 @@ async def toggle_task(
         db.commit()
 
     referer = request.headers.get("referer", "/student/dashboard")
-    return RedirectResponse(url=referer, status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url = referer, status_code = status.HTTP_303_SEE_OTHER)
 
 
 @app.post("/student/tasks/{task_id}/delete")
 async def delete_task(
     task_id:     int,
     request:     Request,
-    current_user: dict  = Depends(require_student),
+    current_user: dict = Depends(require_student),
     db: Session = Depends(get_db)
 ):
     task = db.query(Task).filter(
@@ -1890,30 +1897,30 @@ async def delete_task(
     if task:
         db.delete(task)
         db.commit()
-    return RedirectResponse(url="/student/tasks", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url = "/student/tasks", status_code = status.HTTP_303_SEE_OTHER)
 
 
-# ── Prediction API 
+#  Prediction API 
 # Kept as a JSON endpoint because it's compute-heavy and called on-demand.
 
 # prediction endpoint 
-@app.post("/api/predict/{student_id}", response_model=PredictionResponse)
+@app.post("/api/predict/{student_id}", response_model = PredictionResponse)
 async def generate_prediction(
     student_id:   int,
     request:      Request,
-    current_user: dict    = Depends(require_student),
-    db: Session           = Depends(get_db)
+    current_user: dict = Depends(require_student),
+    db: Session = Depends(get_db)
 ):
     """
     Runs the full inference pipeline for a student. Idempotent: if a prediction for today
     already exists, returns it without creating a duplicate.
     """
     if current_user["user_id"] != student_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only generate predictions for yourself")
+        raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = "You can only generate predictions for yourself")
 
     student = db.query(Student).filter(Student.student_id == student_id).first()
     if not student:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "Student not found")
 
     existing = (
         db.query(Prediction)
@@ -1928,16 +1935,16 @@ async def generate_prediction(
 
     result = compute_prediction(student, db)
     if not result:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Model not available or no active bundle")
+        raise HTTPException(status_code = status.HTTP_503_SERVICE_UNAVAILABLE, detail = "Model not available or no active bundle")
 
     pred = Prediction(
-        student_id        = student_id,
-        bundle_id         = result["bundle_id"],
-        prediction_date   = date.today(),
-        model_used        = result["model_used"],
-        risk_level        = result["risk_level"],
-        confidence_score  = result["confidence_score"],
-        features_json     = result["features_json"],
+        student_id = student_id,
+        bundle_id = result["bundle_id"],
+        prediction_date = date.today(),
+        model_used = result["model_used"],
+        risk_level = result["risk_level"],
+        confidence_score = result["confidence_score"],
+        features_json = result["features_json"],
     )
     db.add(pred)
 
@@ -1948,11 +1955,11 @@ async def generate_prediction(
     return PredictionResponse.model_validate(pred)
 
     # return {
-    #     "prediction_id":    pred.prediction_id,
-    #     "risk_level":       result["risk_level"],
+    #     "prediction_id":pred.prediction_id,
+    #     "risk_level": result["risk_level"],
     #     "confidence_score": result["confidence_score"],
-    #     "model_used":       result["model_used"],
-    #     "features_used":    result["features_json"],
+    #     "model_used":result["model_used"],
+    #     "features_used":result["features_json"],
     # }
 
 
@@ -2015,15 +2022,15 @@ async def get_mcii_tip(
             }
 
         tip_text = generate_mcii_tip(
-            risk_level=latest_prediction.risk_level,
-            confidence_score=float(latest_prediction.confidence_score),
+            risk_level = latest_prediction.risk_level,
+            confidence_score = float(latest_prediction.confidence_score),
         )
 
         try:
             intervention = MCIIIntervention(
-                prediction_id=latest_prediction.prediction_id,
-                student_id=current_user["user_id"],
-                prompt_text=tip_text,
+                prediction_id = latest_prediction.prediction_id,
+                student_id = current_user["user_id"],
+                prompt_text = tip_text,
             )
             db.add(intervention)
             db.commit()
@@ -2039,8 +2046,8 @@ async def get_mcii_tip(
         raise
     except Exception:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Could not generate MCII tip at this time.",
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = "Could not generate MCII tip at this time.",
         )
 
 
@@ -2049,10 +2056,10 @@ async def get_mcii_tip(
 @app.get("/api/health")
 def health_check():
     return {
-        "status":        "ok",
+        "status": "ok",
         "model_3window": "loaded" if model_3window else "not_loaded",
         "model_7window": "loaded" if model_7window else "not_loaded",
-        "timestamp":     datetime.now().isoformat()
+        "timestamp":datetime.now().isoformat()
     }
 
 
@@ -2066,18 +2073,18 @@ async def general_http_exception_handler(request: Request, exception: StarletteH
         else "An error occurred. Please check your request and try again."
     )
     if exception.status_code in (401, 302):
-        return RedirectResponse(url="/login", status_code=303)
+        return RedirectResponse(url = "/login", status_code = 303)
     if request.url.path.startswith("/api"):
         return JSONResponse(
-            status_code=exception.status_code,
-            content={"detail": message},
+            status_code = exception.status_code,
+            content = {"detail": message},
         )
     return templates.TemplateResponse("error.html", {
         "request": request,
         "status_code": exception.status_code,
         "title": exception.status_code,
         "detail": message
-    }, status_code=exception.status_code)
+    }, status_code = exception.status_code)
 
 # for unexpected crashes or errors
 @app.exception_handler(Exception)
@@ -2086,7 +2093,7 @@ async def generic_exception_handler(request: Request, exc):
         "request": request,
         "status_code": 500,
         "detail": "Something went wrong"
-    }, status_code=500)
+    }, status_code = 500)
 
 from fastapi.exceptions import RequestValidationError
 
@@ -2095,15 +2102,15 @@ from fastapi.exceptions import RequestValidationError
 async def validation_exception_handler(request: Request, exception):
     if request.url.path.startswith("/api"):
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            content={"detail": exception.errors()},
+            status_code = status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content = {"detail": exception.errors()},
         )
     return templates.TemplateResponse("error.html", {
         "request": request,
         "status_code": 422,
         "detail": "Invalid form data submitted"
-    }, status_code=422)
+    }, status_code = 422)
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")
+    uvicorn.run("main:app", host = "0.0.0.0", port = 8000, reload = True, log_level = "info")

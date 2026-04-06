@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}EULA &amp; Privacy Policy | ProActive{% endblock %}
+
+{% block body %}
+<main class="min-h-screen bg-background-light dark:bg-background-dark py-10 px-4 md:px-8">
+    <div class="max-w-3xl mx-auto">
+        <p class="mb-6">
+            <a href="/login" class="text-primary font-semibold hover:underline inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-lg">arrow_back</span>
+                Back to sign in
+            </a>
+        </p>
+
+        <article
+            class="bg-white dark:bg-[#1a222c] rounded-xl border border-[#dbe0e6] dark:border-gray-800 shadow-sm p-8 md:p-10 prose prose-slate dark:prose-invert max-w-none">
+            <header class="mb-10 not-prose border-b border-[#f0f2f4] dark:border-gray-800 pb-8">
+                <h1 class="text-2xl md:text-3xl font-bold text-[#111418] dark:text-white leading-tight tracking-tight">
+                    End User Licence Agreement (EULA) and Privacy Policy
+                </h1>
+                <p class="mt-4 text-sm text-[#617289] dark:text-gray-400 leading-relaxed">
+                    Procrastination Risk Prediction Platform &nbsp;|&nbsp; African Leadership University &nbsp;|&nbsp;
+                    Version 1.0 &nbsp;|&nbsp; March 2026
+                </p>
+            </header>
+
+            <section class="mb-10">
+                <h2 class="text-lg font-bold text-[#111418] dark:text-white mb-3">Clause 1: Acceptance of Terms</h2>
+                <p class="text-[#111418] dark:text-gray-200 text-sm md:text-base leading-relaxed mb-4">
+                    By creating an account and using this platform, you agree to be bound by this EULA and Privacy
+                    Policy. If you do not agree, you must not use this platform. This agreement is between you and
+                    Jeremiah Agbaje, BSc. Software Engineering Candidate, African Leadership University (the
+                    &ldquo;Operator&rdquo;).
+                </p>
+                <p class="text-xs md:text-sm text-[#617289] dark:text-gray-400 italic border-l-4 border-primary/40 pl-4 py-2 bg-primary/5 rounded-r">
+                    <span class="font-semibold not-italic text-[#111418] dark:text-gray-200">Ethical significance:</span>
+                    Establishes informed consent as a precondition for use, ensuring no data is processed without
+                    explicit agreement, meeting Rwanda Law No. 058/2021 and GDPR Article 7 requirements.
+                </p>
+            </section>
+
+            <section class="mb-10">
+                <h2 class="text-lg font-bold text-[#111418] dark:text-white mb-3">Clause 2: Nature of the Platform and Research Context</h2>
+                <p class="text-[#111418] dark:text-gray-200 text-sm md:text-base leading-relaxed mb-4">
+                    This platform is a research prototype for a university Mission Capstone project. It is
+                    <strong>not</strong> a clinical, diagnostic, or certified educational tool. Procrastination risk
+                    scores are statistical indicators for supportive MCII-based (Mental Contrasting with Implementation
+                    Intentions) intervention resources and aggregated, anonymised risk trend information for course
+                    facilitators.
+                </p>
+                <p class="text-xs md:text-sm text-[#617289] dark:text-gray-400 italic border-l-4 border-primary/40 pl-4 py-2 bg-primary/5 rounded-r">
+                    <span class="font-semibold not-italic text-[#111418] dark:text-gray-200">Ethical significance:</span>
+                    Prevents misuse of outputs; establishes that predictions are not definitive diagnoses and cannot be
+                    used for academic penalties, consistent with UNESCO AI Ethics Recommendations.
+                </p>
+            </section>
+
+            <section class="mb-10">
+                <h2 class="text-lg font-bold text-[#111418] dark:text-white mb-3">Clause 3: Data Collected</h2>
+                <p class="text-[#111418] dark:text-gray-200 text-sm md:text-base leading-relaxed mb-3">
+                    The platform collects:
+                </p>
+                <ul class="list-disc pl-6 space-y-2 text-[#111418] dark:text-gray-200 text-sm md:text-base mb-4">
+                    <li><strong>(a) Behavioural engagement data:</strong> Login timestamps, session duration, assignment
+                        interaction frequency.</li>
+                    <li><strong>(b) Chatbot conversation logs:</strong> Interactions with the MCII AI chatbot.</li>
+                    <li><strong>(c) Account information:</strong> A unique participant code assigned at registration (not
+                        real name, student ID, or email).</li>
+                </ul>
+                <p class="text-[#111418] dark:text-gray-200 text-sm md:text-base leading-relaxed mb-4">
+                    Personal identifiers are separated from behavioural data at collection and replaced with participant
+                    codes. It does not collect financial, health, or sensitive personal data.
+                </p>
+                <p class="text-xs md:text-sm text-[#617289] dark:text-gray-400 italic border-l-4 border-primary/40 pl-4 py-2 bg-primary/5 rounded-r">
+                    <span class="font-semibold not-italic text-[#111418] dark:text-gray-200">Ethical significance:</span>
+                    Adheres to data minimisation required by Rwanda Law No. 058/2021, GDPR, and NDPA 2023.
+                </p>
+            </section>
+
+            <section class="mb-6">
+                <h2 class="text-lg font-bold text-[#111418] dark:text-white mb-3">Clause 4: How Your Data is Used</h2>
+                <p class="text-[#111418] dark:text-gray-200 text-sm md:text-base leading-relaxed mb-3">
+                    Behavioural data is used exclusively to:
+                </p>
+                <ul class="list-disc pl-6 space-y-2 text-[#111418] dark:text-gray-200 text-sm md:text-base mb-4">
+                    <li><strong>(a)</strong> Generate daily personalised procrastination risk predictions.</li>
+                    <li><strong>(b)</strong> Provide tailored MCII intervention prompts.</li>
+                    <li><strong>(c)</strong> Contribute to aggregated, anonymised research summaries and cohort-level
+                        trend reporting for course facilitators, where applicable.</li>
+                </ul>
+                <p class="text-xs md:text-sm text-[#617289] dark:text-gray-400 italic border-l-4 border-primary/40 pl-4 py-2 bg-primary/5 rounded-r">
+                    <span class="font-semibold not-italic text-[#111418] dark:text-gray-200">Ethical significance:</span>
+                    Limits processing to stated purposes and supports transparency for participants and facilitators in
+                    line with lawful basis and purpose limitation principles under applicable data protection law.
+                </p>
+            </section>
+        </article>
+
+        <p class="mt-8 text-center text-sm text-[#617289] dark:text-gray-400">
+            No account? <a href="/signup" class="text-primary font-bold hover:underline">Sign up</a>
+            &nbsp;&middot;&nbsp;
+            <a href="/login" class="text-primary font-bold hover:underline">Sign in</a>
+        </p>
+    </div>
+</main>
+{% endblock %}
