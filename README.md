@@ -9,12 +9,12 @@ ProActive is a full-stack web application that estimates early procrastination r
 Use this section to **review the running product** without installing anything locally.
 
 1. **Open the deployed application**  
-   **Live site:** [https://web-production-185b1.up.railway.app](https://web-production-185b1.up.railway.app)
+   **Live site:** [https://web-production-185b1.up.railway.app](https://web-production-185b1.up.railway.app) (currently deactivated after capstone defence)
 
 2. **What to try on the live site**
    - **Admin:** Sign in at `/login` with the default admin account (see [Default login credentials](#default-login-credentials)). Explore the admin dashboard, cohort overview, student detail views, and task assignment.
-   - **Student:** Register at `/signup` using invite code `PROACTIVE1` (ties the student to the default admin cohort). Complete weekly behavioural bundles and tasks as prompted, then open the student dashboard for the risk trend and MCII chat.
-   - **Scheduler / predictions:** After students have data, an admin can use **Run Scheduler** (from the admin UI) to trigger the batch prediction job so risk levels populate as designed.
+   - **Student:** Register at `/signup` using invite code `PROACTIVE1` (ties the student to the default admin cohort). Complete the weekly behavioural bundles and tasks as prompted, then open the student dashboard to view the risk trend and MCII chat.
+   - **Scheduler/predictions:** After students have data, an admin can use **Run Scheduler** (from the admin UI) to trigger the batch prediction job so risk levels populate as designed.
 
 3. **Evidence and formal evaluation**  
    Functional results, performance checks, deployment steps, ML evaluation, and discussion are documented in **[TESTING.md](TESTING.md)** — use that document for testing methodology and benchmarks rather than this README.
